@@ -19,6 +19,9 @@
 #' @export
 readBioticXML <- function(filePath, version = "3") {
 
+	# Expand path
+	filePath <- path.expand(filePath)
+
 	# Check file exists
 	if(!file.exists(filePath))
 		return(NULL)
