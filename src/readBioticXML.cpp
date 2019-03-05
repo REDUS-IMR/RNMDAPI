@@ -49,8 +49,13 @@ List readBioticXMLCpp(CharacterVector inputFile, List keys, NumericVector dim)
 
 	// Parse the buffer using the xml file parsing library into doc 
 	doc.parse<0>(&buffer[0]);
+
 	// Find our root node
-	root_node = doc.first_node("mission");
+	// If start with missions
+	if(root_node = doc.first_node("missions"))
+		root_node = root_node->first_node("mission");
+	else
+		root_node = doc.first_node("mission");
     
     // Prepare counters
     int FSctr = 0;
