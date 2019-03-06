@@ -55,7 +55,7 @@ List readBioticXMLCpp(CharacterVector inputFile, List keys, NumericVector dim)
 
 	// Find our root node
 	// If start with missions
-	if(root_node = doc.first_node("missions"))
+	if((root_node = doc.first_node("missions")))
 		root_node = root_node->first_node("mission");
 	else
 		root_node = doc.first_node("mission");
