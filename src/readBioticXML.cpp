@@ -30,8 +30,11 @@ List readBioticXMLCpp(CharacterVector inputFile, List keys, NumericVector dim)
     
     // Preparing matrices
     CharacterMatrix FS(dim[0], FSkeys.size());
+    std::fill(FS.begin(), FS.end(), CharacterVector::get_na()) ;
     CharacterMatrix CA(dim[1], CAkeys.size());
+    std::fill(CA.begin(), CA.end(), CharacterVector::get_na()) ;
     CharacterMatrix ID(dim[2], IDkeys.size());
+    std::fill(ID.begin(), ID.end(), CharacterVector::get_na()) ;
 
     // Add colnames
     colnames(FS) = FSkeys;
