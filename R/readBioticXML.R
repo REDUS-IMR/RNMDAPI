@@ -51,6 +51,9 @@ readBioticXML <- function(filePath, version = "3") {
 	levelDims["CA"] <- getNodeSet(biotic, "count(//d1:mission/d1:fishstation/d1:catchsample)", nst)
 	levelDims["ID"] <- getNodeSet(biotic, "count(//d1:mission/d1:fishstation/d1:catchsample/d1:individual)", nst)
 
+	print("Found these structures:")
+	print(levelDims)
+
 	# Read it
 	ret <- readBioticXMLCpp(filePath, nodeKeys, levelDims)
 
