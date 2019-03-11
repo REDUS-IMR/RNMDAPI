@@ -1,13 +1,13 @@
 Package: RNMDAPI
 Type: Package
 Title: R libraries to interface with IMR NMD API
-Version: 0.1
+Version: 0.2
 Date: 2019-03-03
 Author: Ibrahim Umar
 Maintainer: Ibrahim Umar <ibrahim.umar@hi.no>
-Description: Tools to fetch and manipulate variois data formats 
+Description: Tools to fetch and manipulate various data formats 
         obtained from IMR NMDAPI.
 License: LGPL-3 + file LICENSE
-Imports: Rcpp (>= 1.0.0), XML
+Imports: Rcpp (>= 1.0.0), XML, data.table
 LinkingTo: Rcpp
 RoxygenNote: 6.1.1

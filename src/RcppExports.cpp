@@ -5,22 +5,25 @@
 
 using namespace Rcpp;
 
-// readBioticXMLCpp
-List readBioticXMLCpp(CharacterVector inputFile, List keys, NumericVector dim);
-RcppExport SEXP _RNMDAPI_readBioticXMLCpp(SEXP inputFileSEXP, SEXP keysSEXP, SEXP dimSEXP) {
+// readNMDxmlCpp
+Rcpp::List readNMDxmlCpp(Rcpp::CharacterVector inputFile, Rcpp::CharacterVector root, Rcpp::List treeStruct, Rcpp::List tableHeaders, Rcpp::NumericVector prefixLens, Rcpp::NumericVector levelDims);
+RcppExport SEXP _RNMDAPI_readNMDxmlCpp(SEXP inputFileSEXP, SEXP rootSEXP, SEXP treeStructSEXP, SEXP tableHeadersSEXP, SEXP prefixLensSEXP, SEXP levelDimsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< CharacterVector >::type inputFile(inputFileSEXP);
-    Rcpp::traits::input_parameter< List >::type keys(keysSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type dim(dimSEXP);
-    rcpp_result_gen = Rcpp::wrap(readBioticXMLCpp(inputFile, keys, dim));
+    Rcpp::traits::input_parameter< Rcpp::CharacterVector >::type inputFile(inputFileSEXP);
+    Rcpp::traits::input_parameter< Rcpp::CharacterVector >::type root(rootSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type treeStruct(treeStructSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type tableHeaders(tableHeadersSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type prefixLens(prefixLensSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type levelDims(levelDimsSEXP);
+    rcpp_result_gen = Rcpp::wrap(readNMDxmlCpp(inputFile, root, treeStruct, tableHeaders, prefixLens, levelDims));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_RNMDAPI_readBioticXMLCpp", (DL_FUNC) &_RNMDAPI_readBioticXMLCpp, 3},
+    {"_RNMDAPI_readNMDxmlCpp", (DL_FUNC) &_RNMDAPI_readNMDxmlCpp, 6},
     {NULL, NULL, 0}
 };
 
