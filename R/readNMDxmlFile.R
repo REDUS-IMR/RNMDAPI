@@ -5,6 +5,11 @@ processXSD <- function(doc) {
 		return(c(y[["name"]], y[["type"]]))
 	}
 
+	getNameTypeExt <- function(x, base) {
+		y <- xmlAttrs(x)
+		return(c(base, y[["base"]]))
+	}
+
 	getRecNameType <- function(x, rootName = "") {
 		# Extract name
 		sName <- x[2]
@@ -19,9 +24,24 @@ processXSD <- function(doc) {
 		# Extract elements
 		y <- getNodeSet(doc, paste0("//xs:complexType[@name=\"", sName, "\"]//xs:element"))
 
-		# If no children and "KeyType"
+		# This is needed for echosounder v1 SA records
+		extension <- getNodeSet(doc, paste0("//xs:complexType[@name=\"", sName, "\"]//xs:extension"))
+
+
+		# If no children and "KeyType" (This might be specific to Biotic)
 		if(length(y) > 0 && !grepl("KeyType", sName)) {
 			z <- lapply(lapply(y, getNameType), getRecNameType, rootName)
+
+			# Prepare flat
+			flat[[x[1]]] <<- z
+			flatAttr[[x[1]]] <<- sapply(getNodeSet(doc, paste0("//xs:complexType[@name=\"", sName, "\"]//xs:attribute/@name")), function(xx) xx[["name"]])
+
+			# Remove nested elements
+			flat[[x[1]]] <<- lapply(flat[[x[1]]], function(xx){ if(is.list(xx)) return(xx[[1]][1]) else return(xx) })
+			return(list(x, members=z))
+		# Below is specific for Echosounder v1's SA records (with XSD extension)
+		} else if (length(extension) > 0)  {
+			z <- lapply(extension, getNameTypeExt, x[1])
 
 			# Prepare flat
 			flat[[x[1]]] <<- z

@@ -56,7 +56,12 @@ void processNode(const rapidxml::xml_node<>* node, const std::vector<char*>& par
 		; n = n->next_sibling()
 	) {
 		//cout << n->name() << n->value() << endl;
-		Rcpp::CharacterVector NodeKey(n->name());
+		// For echousounder's sa records
+		Rcpp::CharacterVector NodeKey("");
+		if(n->name()[0] == '\0')
+			NodeKey[0] = root;
+		else
+			NodeKey[0] = n->name();
 		Rcpp::IntegerVector col = match(NodeKey, NodeKeys);
 		if( col[0] > 0 ) {
 #ifdef DEBUG
