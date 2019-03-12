@@ -1,7 +1,7 @@
 Package: RNMDAPI
 Type: Package
 Title: R libraries to interface with IMR NMD API
-Version: 0.2
+Version: 0.2.1
 Date: 2019-03-03
 Author: Ibrahim Umar
 Maintainer: Ibrahim Umar <ibrahim.umar@hi.no>
