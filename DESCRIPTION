@@ -8,6 +8,6 @@ Maintainer: Ibrahim Umar <ibrahim.umar@hi.no>
 Description: Tools to fetch and manipulate various data formats 
         obtained from IMR NMDAPI.
 License: LGPL-3 + file LICENSE
-Imports: Rcpp (>= 1.0.0), XML, data.table
+Imports: Rcpp (>= 1.0.0), xml2, data.table
 LinkingTo: Rcpp
 RoxygenNote: 6.1.1

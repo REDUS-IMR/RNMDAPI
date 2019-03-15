@@ -1,12 +1,12 @@
 processXSD <- function(doc) {
 
 	getNameType <- function(x) {
-		y <- xmlAttrs(x)
+		y <- xml_attrs(x)
 		return(c(y[["name"]], y[["type"]]))
 	}
 
 	getNameTypeExt <- function(x, base) {
-		y <- xmlAttrs(x)
+		y <- xml_attrs(x)
 		return(c(base, y[["base"]]))
 	}
 
@@ -22,10 +22,10 @@ processXSD <- function(doc) {
 		sName <- gsub(paste0(rootName, ":"), "", sName)
 		
 		# Extract elements
-		y <- getNodeSet(doc, paste0("//xs:complexType[@name=\"", sName, "\"]//xs:element"))
+		y <- xml_find_all(doc, paste0("//xs:complexType[@name=\"", sName, "\"]//xs:element"))
 
 		# This is needed for echosounder v1 SA records
-		extension <- getNodeSet(doc, paste0("//xs:complexType[@name=\"", sName, "\"]//xs:extension"))
+		extension <- xml_find_all(doc, paste0("//xs:complexType[@name=\"", sName, "\"]//xs:extension"))
 
 
 		# If no children and "KeyType" (This might be specific to Biotic)
@@ -34,7 +34,7 @@ processXSD <- function(doc) {
 
 			# Prepare flat
 			flat[[x[1]]] <<- z
-			flatAttr[[x[1]]] <<- sapply(getNodeSet(doc, paste0("//xs:complexType[@name=\"", sName, "\"]//xs:attribute/@name")), function(xx) xx[["name"]])
+			flatAttr[[x[1]]] <<- sapply(xml_find_all(doc, paste0("//xs:complexType[@name=\"", sName, "\"]//xs:attribute/@name")), function(xx) xml_text(xx))
 
 			# Remove nested elements
 			flat[[x[1]]] <<- lapply(flat[[x[1]]], function(xx){ if(is.list(xx)) return(xx[[1]][1]) else return(xx) })
@@ -45,7 +45,7 @@ processXSD <- function(doc) {
 
 			# Prepare flat
 			flat[[x[1]]] <<- z
-			flatAttr[[x[1]]] <<- sapply(getNodeSet(doc, paste0("//xs:complexType[@name=\"", sName, "\"]//xs:attribute/@name")), function(xx) xx[["name"]])
+			flatAttr[[x[1]]] <<- sapply(xml_find_all(doc, paste0("//xs:complexType[@name=\"", sName, "\"]//xs:attribute/@name")), function(xx) xml_text(xx))
 
 			# Remove nested elements
 			flat[[x[1]]] <<- lapply(flat[[x[1]]], function(xx){ if(is.list(xx)) return(xx[[1]][1]) else return(xx) })
@@ -56,7 +56,7 @@ processXSD <- function(doc) {
 	}
 
 
-	rootInfo <- getNameType(getNodeSet(doc, "/xs:schema/xs:element")[[1]])
+	rootInfo <- getNameType(xml_find_all(doc, "/xs:schema/xs:element")[[1]])
 
 	flat <- list()
 	flatAttr <- list()
@@ -69,7 +69,7 @@ processXSD <- function(doc) {
 }
 
 
-processXML <- function(flat, flatAttr, rootInfo, xmlFilePath, xmlFileObj, xmlFileObjNS) {
+processXML <- function(flat, flatAttr, rootInfo, xmlFilePath, xmlFileObj) {
 
 	# Process column names and types
 	applyNameType <- function(x, result, tableHeaders, tableTypes) {
@@ -118,7 +118,7 @@ processXML <- function(flat, flatAttr, rootInfo, xmlFilePath, xmlFileObj, xmlFil
 
 		# Get number of elements
 		tempXpath <- paste(xpath, rootStart, sep='/d1:')
-		elemNum <- getNodeSet(xmlFileObj, paste0("count(", tempXpath, ")"), nst)
+		elemNum <- xml_find_num(xmlFileObj, paste0("count(", tempXpath, ")"), nst)
 
 		# If there is at least one element then it can be the parent
 		if(elemNum > 0)
@@ -150,7 +150,7 @@ processXML <- function(flat, flatAttr, rootInfo, xmlFilePath, xmlFileObj, xmlFil
 	# Defining root
 	root <- rootInfo[1]
 
-	nst <- c(d1 = xmlFileObjNS)
+	nst <- xml_ns(xmlFileObj)
 
 	invisible(getAttrTable(rootInfo))
 
@@ -211,7 +211,7 @@ processXML <- function(flat, flatAttr, rootInfo, xmlFilePath, xmlFileObj, xmlFil
 #'
 #' @useDynLib RNMDAPI
 #' @importFrom Rcpp sourceCpp
-#' @importFrom XML xmlAttrs xmlParse xmlSApply getNodeSet xmlNamespaceDefinitions
+#' @importFrom xml2 xml_attrs read_xml xml_find_all xml_find_num xml_ns xml_text
 #' @importFrom utils tail
 #' @importFrom data.table as.data.table
 #'
@@ -228,10 +228,10 @@ readNMDxmlFile <- function(xmlFilePath) {
 	}
 
 	# Read XML file
-	xmlFileObj <- xmlParse(xmlFilePath)
+	xmlFileObj <- read_xml(xmlFilePath)
 
 	# Read NameSpace
-	xmlFileObjNS <- as.character(xmlNamespaceDefinitions(xmlFileObj, simplify = TRUE))
+	xmlFileObjNS <- xml_ns(xmlFileObj)[[1]]
 
 	# Determine correct XSD file
 	nsInfo <- tail(unlist(strsplit(xmlFileObjNS, "/")), 2)
@@ -249,13 +249,13 @@ readNMDxmlFile <- function(xmlFilePath) {
 	}
 
 	# Parse XSD
-	xsdObj <- xmlParse(xsdFilePath)
+	xsdObj <- read_xml(xsdFilePath)
 
 	# Get metadata based on XSD
 	metaData <- processXSD(xsdObj)
 
 	# Process XML file
-	ret <- processXML(metaData$flat, metaData$flatAttr, metaData$rootInfo, xmlFilePath, xmlFileObj, xmlFileObjNS)
+	ret <- processXML(metaData$flat, metaData$flatAttr, metaData$rootInfo, xmlFilePath, xmlFileObj)
 
 	return(ret)
 }
