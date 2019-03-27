@@ -12,15 +12,6 @@
 #include "pugixml/pugixml.hpp"
 #include <Rcpp.h>
 
-/*
-#if defined(PUGIXML_NO_EXCEPTIONS)
-void rapidxml::parse_error_handler(const char* what, void* where)
-{
-    Rcpp::stop("Parse error(@%p): %s\n", where, what);
-}
-#endif
-*/
-
 void processNode(pugi::xml_node& node, const std::vector<const char*>& parentPrefix, const Rcpp::List& treeStruct, const Rcpp::List& tableHeaders, const Rcpp::NumericVector& prefixLens, std::map<std::string, int>& levelCtrs, Rcpp::List& ret) {
 	const char* root = node.name();
 
@@ -84,15 +75,11 @@ void processNode(pugi::xml_node& node, const std::vector<const char*>& parentPre
 }
 
 // [[Rcpp::export]]
-Rcpp::List readNMDxmlCpp(Rcpp::CharacterVector inputFile, Rcpp::CharacterVector root, Rcpp::List treeStruct, Rcpp::List tableHeaders, Rcpp::NumericVector prefixLens, Rcpp::NumericVector levelDims)
+Rcpp::List readNMDxmlCpp(Rcpp::CharacterVector inputFile, Rcpp::List xsdObjects)
 {
 
 	pugi::xml_document doc;
 	pugi::xml_node root_node;
-
-	Rcpp::Rcout << "Parsing biotic XML :" << inputFile << "." << std::endl;
-
- 	if (!doc.load_file(inputFile[0])) return -1;
 
 	// Read xml using ifstream and buffer vector
 	//std::ifstream iFile (inputFile[0]);
@@ -100,6 +87,41 @@ Rcpp::List readNMDxmlCpp(Rcpp::CharacterVector inputFile, Rcpp::CharacterVector 
 	//buffer.push_back('\0');
 
 	//pugi::xml_parse_result result = doc.load_buffer_inplace_own(&buffer[0], buffer.size());
+
+	// Read file
+	if (!doc.load_file(inputFile[0])) {
+		Rcpp::Rcout << "Unable to read " << inputFile << std::endl;
+		return -1;
+	}
+
+	// Get namespace
+	char* xmlns = (char*) doc.first_child().attribute("xmlns").value();
+
+	// Process namespace to get the correct XSD data
+	char *token = std::strtok(xmlns, "/");
+
+	char *one = NULL;
+	char *two = token;
+
+	while (token) {
+		one = two;
+		two = token;
+		token = strtok(NULL, "/");
+	}
+
+	char xsd[50];
+	sprintf (xsd, "%s%s.xsd", one, two);
+
+	// Print out XML information
+	Rcpp::Rcout << "Parsing XML: " << inputFile << std::endl;
+	Rcpp::Rcout << "Detected XSD: " << xsd << std::endl;
+
+	// Get XSD object
+	Rcpp::CharacterVector root = Rcpp::as<Rcpp::List>(xsdObjects[xsd])["root"];
+	Rcpp::List treeStruct = Rcpp::as<Rcpp::List>(xsdObjects[xsd])["treeStruct"];
+	Rcpp::List tableHeaders = Rcpp::as<Rcpp::List>(xsdObjects[xsd])["tableHeaders"];
+	Rcpp::NumericVector prefixLens = Rcpp::as<Rcpp::List>(xsdObjects[xsd])["prefixLens"];
+	Rcpp::CharacterVector levelDims = Rcpp::as<Rcpp::List>(xsdObjects[xsd])["levelDims"];
 
 	// Find our root node
 	char * rootStr = root[0];
@@ -109,7 +131,9 @@ Rcpp::List readNMDxmlCpp(Rcpp::CharacterVector inputFile, Rcpp::CharacterVector 
 	std::vector<const char*> prefix;
 
 	// Allowing one level down
+	std::string toErase = "";
 	if(!root_node) {
+		toErase = toErase + "/" + rootStr;
 		Rcpp::CharacterVector downLevel = treeStruct[rootStr];
 		rootStr = downLevel[0];
 		root_node = doc.child(rootStr);
@@ -129,9 +153,23 @@ Rcpp::List readNMDxmlCpp(Rcpp::CharacterVector inputFile, Rcpp::CharacterVector 
 		// Counter		
 		levelCtrs[tStr.c_str()] = 0;
 
+		// Run XPATH
+		std::string te =  Rcpp::as< std::string >(levelDims[tStr.c_str()]);
+
+		// Cut first root if needed
+		if(toErase.length() > 1) {
+			size_t pos = te.find(toErase);
+			te.erase(pos, toErase.length());
+		}
+
+		pugi::xpath_query query_countnode(te.c_str());
+		int count = query_countnode.evaluate_number(doc);
+#ifdef DEBUG
+		std::cout << te << ", "<<  count << std::endl;
+#endif
 		// Matrix
 		Rcpp::CharacterVector tH = tableHeaders[tStr.c_str()];
-		Rcpp::CharacterMatrix xy(levelDims[tStr.c_str()], tH.size());
+		Rcpp::CharacterMatrix xy((int)count, tH.size());
 		std::fill(xy.begin(), xy.end(), Rcpp::CharacterVector::get_na()) ;
 		ret.push_back( xy, tStr );
 
@@ -157,6 +195,10 @@ Rcpp::List readNMDxmlCpp(Rcpp::CharacterVector inputFile, Rcpp::CharacterVector 
 	}
 #endif
 
-	return ret;
+	// Return results and xsd name
+	return Rcpp::List::create(
+		Rcpp::_["xsd"]  = xsd,
+		Rcpp::_["result"]  = ret
+	);
 }
 

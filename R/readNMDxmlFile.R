@@ -1,75 +1,22 @@
-processXSD <- function(doc) {
-
-	getNameType <- function(x) {
-		y <- xml_attrs(x)
-		return(c(y[["name"]], y[["type"]]))
-	}
-
-	getNameTypeExt <- function(x, base) {
-		y <- xml_attrs(x)
-		return(c(base, y[["base"]]))
-	}
-
-	getRecNameType <- function(x, rootName = "") {
-		# Extract name
-		sName <- x[2]
-
-		# Get rootname
-		if(rootName == "")
-			rootName <- x[1]
-
-		# Clean sName
-		sName <- gsub(paste0(rootName, ":"), "", sName)
-		
-		# Extract elements
-		y <- xml_find_all(doc, paste0("//xs:complexType[@name=\"", sName, "\"]//xs:element"))
-
-		# This is needed for echosounder v1 SA records
-		extension <- xml_find_all(doc, paste0("//xs:complexType[@name=\"", sName, "\"]//xs:extension"))
-
-
-		# If no children and "KeyType" (This might be specific to Biotic)
-		if(length(y) > 0 && !grepl("KeyType", sName)) {
-			z <- lapply(lapply(y, getNameType), getRecNameType, rootName)
-
-			# Prepare flat
-			flat[[x[1]]] <<- z
-			flatAttr[[x[1]]] <<- sapply(xml_find_all(doc, paste0("//xs:complexType[@name=\"", sName, "\"]//xs:attribute/@name")), function(xx) xml_text(xx))
-
-			# Remove nested elements
-			flat[[x[1]]] <<- lapply(flat[[x[1]]], function(xx){ if(is.list(xx)) return(xx[[1]][1]) else return(xx) })
-			return(list(x, members=z))
-		# Below is specific for Echosounder v1's SA records (with XSD extension)
-		} else if (length(extension) > 0)  {
-			z <- lapply(extension, getNameTypeExt, x[1])
-
-			# Prepare flat
-			flat[[x[1]]] <<- z
-			flatAttr[[x[1]]] <<- sapply(xml_find_all(doc, paste0("//xs:complexType[@name=\"", sName, "\"]//xs:attribute/@name")), function(xx) xml_text(xx))
-
-			# Remove nested elements
-			flat[[x[1]]] <<- lapply(flat[[x[1]]], function(xx){ if(is.list(xx)) return(xx[[1]][1]) else return(xx) })
-			return(list(x, members=z))
-		} else {
-			return(x)
-		}
-	}
-
-
-	rootInfo <- getNameType(xml_find_all(doc, "/xs:schema/xs:element")[[1]])
-
-	flat <- list()
-	flatAttr <- list()
-
-	# start the recursive search
-	invisible(getRecNameType(rootInfo))
-
-	return(list(flat = flat, flatAttr = flatAttr, rootInfo = rootInfo))
-
-}
-
-
-processXML <- function(flat, flatAttr, rootInfo, xmlFilePath, xmlFileObj) {
+#' Read NMD XML format file downloaded from IMR NMD API
+#'
+#' Read NMD XML format file. Supports only Biotic version 3 and Echosounder verion 1 format at the moment.
+#'
+#' @param xmlFilePath full path to the XML file to be read.
+#'
+#' @return List of data.table(s) containing the "flattened" XML data.
+#'
+#' @examples
+#' \dontrun{
+#' readNMDxmlFile("./test.xml")
+#' }
+#'
+#' @useDynLib RNMDAPI
+#' @importFrom Rcpp sourceCpp
+#' @importFrom data.table as.data.table
+#'
+#' @export
+readNMDxmlFile <- function(xmlFilePath) {
 
 	# Process column names and types
 	applyNameType <- function(x, result, tableHeaders, tableTypes) {
@@ -98,126 +45,6 @@ processXML <- function(flat, flatAttr, rootInfo, xmlFilePath, xmlFileObj) {
 		return(z)
 	}
 
-	# Process headers and dimensions
-	getAttrTable <- function(root, headAttr = c(), xpath="") {
-
-		rootStart <- root[1]
-
-		state <- flat[[rootStart]]
-		attrs <- flatAttr[[rootStart]]
-
-		# Combine with attributs
-		tableElements <- c(headAttr, attrs)
-		tableTypes <- rep("attr", length(tableElements))
-
-		# List prefix for next children	
-		prefix <- c(headAttr, attrs)
-
-		# Get length of header
-		headLen <- length(headAttr)
-
-		# Get number of elements
-		tempXpath <- paste(xpath, rootStart, sep='/d1:')
-		elemNum <- xml_find_num(xmlFileObj, paste0("count(", tempXpath, ")"), nst)
-
-		# If there is at least one element then it can be the parent
-		if(elemNum > 0)
-			xpath <- tempXpath
-
-		for(s in 1:length(state)) {
-			if(length(state[[s]]) > 1) {
-				tableElements <- c(tableElements, state[[s]][1])
-				tableTypes <- c(tableTypes, state[[s]][2])
-			} else {
-				getAttrTable(state[[s]], prefix, xpath)
-			}
-		}
-
-		tableHeaders[[rootStart]] <<- unlist(tableElements)
-		tablePrefix[[rootStart]] <<- unlist(prefix)
-		tableTypes[[rootStart]] <<- unlist(tableTypes)
-		levelDims[[rootStart]] <<- elemNum
-	}
-
-	# Meta data before go to C++
-	tableHeaders <- list()
-	tablePrefix <- list()
-	levelDims <- list()
-
-	# For element types
-	tableTypes <- list()
-
-	# Defining root
-	root <- rootInfo[1]
-
-	nst <- xml_ns(xmlFileObj)
-
-	invisible(getAttrTable(rootInfo))
-
-	# Fill in missing values
-	missingSets <- setdiff(names(flatAttr), names(tableHeaders))
-	invisible(lapply(missingSets, function (x) {
-			tablePrefix[[x]] <<- character(0)
-			tableHeaders[[x]] <<- character(0)
-	}))
-	tablePrefix[[root]] <- character(0)
-
-	# Function to get information about children nodes
-	getChildren <- function(root, flat) {
-
-		x <- flat[[root]]
-
-		children <- c()
-		for(it in 1:length(x))
-			if(length(x[[it]]) == 1)
-				children <- c(children, x[[it]])
-		return (children)
-	} 
-
-	# Get tree information
-	treeStruct <- lapply(names(flat), getChildren, flat)
-	names(treeStruct) <- names(flat)
-
-	# Get prefix length information
-	prefixLens <- lapply(tablePrefix, function(x) length(x))
-	names(prefixLens) <- names(tablePrefix)
-
-	# Unlist couple of metadata before going into c++
-	levelDims <- unlist(levelDims)
-	prefixLens <- unlist(prefixLens)
-
-	# Invoke c++ xml reading
-	result <- readNMDxmlCpp(xmlFilePath, root, treeStruct, tableHeaders, prefixLens, levelDims)
-
-	# Finishing touch
-	final <- lapply(names(result), applyNameType, result, tableHeaders, tableTypes)
-	names(final) <- names(result)
-
-	return(final)
-}
-
-#' Read NMD XML format file downloaded from IMR NMD API
-#'
-#' Read NMD XML format file. Supports only Biotic version 3 and Echosounder verion 1 format at the moment.
-#'
-#' @param xmlFilePath full path to the XML file to be read.
-#'
-#' @return List of data.table(s) containing the "flattened" XML data.
-#'
-#' @examples
-#' \dontrun{
-#' readNMDxmlFile("./test.xml")
-#' }
-#'
-#' @useDynLib RNMDAPI
-#' @importFrom Rcpp sourceCpp
-#' @importFrom xml2 xml_attrs read_xml xml_find_all xml_find_num xml_ns xml_text
-#' @importFrom utils tail
-#' @importFrom data.table as.data.table
-#'
-#' @export
-readNMDxmlFile <- function(xmlFilePath) {
-
 	# Expand path
 	xmlFilePath <- path.expand(xmlFilePath)
 
@@ -227,36 +54,18 @@ readNMDxmlFile <- function(xmlFilePath) {
 		return(NULL)
 	}
 
-	# Read XML file
-	xmlFileObj <- read_xml(xmlFilePath)
+	# Invoke C++ xml reading
+	res <- readNMDxmlCpp(xmlFilePath, xsdObjects)
 
-	# Read NameSpace
-	xmlFileObjNS <- xml_ns(xmlFileObj)[[1]]
+	result <- res[["result"]]
+	xsd <- res[["xsd"]]
 
-	# Determine correct XSD file
-	nsInfo <- tail(unlist(strsplit(xmlFileObjNS, "/")), 2)
-	xsdFile <- paste0(nsInfo[1], nsInfo[2], ".xsd")
+	tableHeaders <- xsdObjects[[xsd]][["tableHeaders"]]
+	tableTypes <- xsdObjects[[xsd]][["tableTypes"]]
 
-	# Check if XSD exists
-	print(paste("Using :", xsdFile, "."))
+	# Finishing touch
+	final <- lapply(names(result), applyNameType, result, tableHeaders, tableTypes)
+	names(final) <- names(result)
 
-	# Get path from local environment
-	fpath <- get("fpath", envir = localEnv)
-	xsdFilePath <- paste0(fpath, "/", xsdFile)
-	if(!file.exists(xsdFilePath)) {
-		print(paste("It seems that", xsdFile, "does not exist or the format is not supported."))
-		return(NULL)
-	}
-
-	# Parse XSD
-	xsdObj <- read_xml(xsdFilePath)
-
-	# Get metadata based on XSD
-	metaData <- processXSD(xsdObj)
-
-	# Process XML file
-	ret <- processXML(metaData$flat, metaData$flatAttr, metaData$rootInfo, xmlFilePath, xmlFileObj)
-
-	return(ret)
+	return(final)
 }
-
