@@ -24,7 +24,7 @@
 #include <assert.h>
 #include <string.h>
 
-typedef enum XmlToken_
+enum XmlToken_
 {
 	XML_TOK_EOF,
 	XML_TOK_INVALID,		/* invalid token */
@@ -43,8 +43,9 @@ typedef enum XmlToken_
 	XML_TOK_CDATA_START,	/* <![CDATA[ */
 	XML_TOK_CDATA_END,		/* ]]> */
 	XML_TOK_DOCTYPE			/* <!DOCTYPE xxx [ */
-} XmlToken;
+};
 
+typedef int XmlToken;
 
 /* return !0 if the strings match, 0 if not */
 int XML_StringsMatch(const XML_Char *s1, const XML_Char *s2)
