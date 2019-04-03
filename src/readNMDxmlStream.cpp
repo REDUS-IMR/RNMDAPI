@@ -30,24 +30,29 @@ static inline void trim(std::string &s) {
 
 class persistentData {
 private:
-	const Rcpp::List* tableHeaders;
-	const Rcpp::NumericVector* prefixLens;
+	std::map<std::string, std::vector<std::string> >* tableHeaders;
+	std::map<std::string, int >* prefixLens;
+	std::vector<std::string>* tableNames;
 	std::map<std::string, std::list<std::vector<std::string> > >* ret;
 public:
-	persistentData(const Rcpp::List& a, const Rcpp::NumericVector& b, std::map<std::string, std::list<std::vector<std::string> > >* c)
+	persistentData(std::map<std::string, std::vector<std::string> >* a, std::map<std::string, int >* b, std::map<std::string, std::list<std::vector<std::string> > >* c, std::vector<std::string>* h)
 		:
-		tableHeaders(&a),
-		prefixLens(&b),
+		tableHeaders(a),
+		prefixLens(b),
+		tableNames(h),
 		ret(c)
 	{}
-
-	const Rcpp::List* getTableHeaders()
+	std::map<std::string, std::vector<std::string> >* getTableHeaders()
 	{
 		return tableHeaders;
 	}
-	const Rcpp::NumericVector* getPrefixLens()
+	std::map<std::string, int >* getPrefixLens()
 	{
 		return prefixLens;
+	}
+	std::vector<std::string>* getTableNames()
+	{
+		return tableNames;
 	}
 	std::map<std::string, std::list<std::vector<std::string> > >* getRet()
 	{
@@ -64,7 +69,7 @@ private:
 	std::vector<std::string>* content;
 
 public:
-	passingData(const Rcpp::List& a, const Rcpp::NumericVector& b, std::map<std::string, std::list<std::vector<std::string> > >* c, const char* d, std::vector<std::string>* e, const char* f, std::vector<std::string>* g) : persistentData(a, b,c),
+	passingData(std::map<std::string, std::vector<std::string> >* a, std::map<std::string, int >* b, std::map<std::string, std::list<std::vector<std::string> > >* c, std::vector<std::string>* h, const char* d, std::vector<std::string>* e, const char* f, std::vector<std::string>* g) : persistentData(a, b, c, h),
 		parent(d),
 		parentPrefix(e),
 		column(f),
@@ -141,7 +146,7 @@ static void sDataHandler(const XML_Char *data, size_t len, void *userData)
 			passingData* pD = (passingData*) userData;
 
 			// get table headers
-			const Rcpp::List* tableHeaders = pD->getTableHeaders();
+			std::map<std::string, std::vector<std::string> >* tableHeaders = pD->getTableHeaders();
 			const char* parent = pD->getParentName();
 			const char* column = pD->getColumn();
 
@@ -159,12 +164,12 @@ static void sDataHandler(const XML_Char *data, size_t len, void *userData)
 			Rcpp::Rcout << '\n';
 #endif
 			// Determine position
-			Rcpp::CharacterVector NodeKey(column);
-			Rcpp::CharacterVector NodeKeys = (*tableHeaders)[parent];
-			Rcpp::IntegerVector col = match(NodeKey, NodeKeys);
+			std::string NodeKey(column);
+			std::vector<std::string> NodeKeys = (*tableHeaders)[parent];
+			unsigned col = find(NodeKeys.begin(), NodeKeys.end(), NodeKey) - NodeKeys.begin();
 
 			// Put the value inside content
-			(*contentPtr)[col[0]-1] = strdata;
+			(*contentPtr)[col] = strdata;
 
 #ifdef DEBUG
 			Rcpp::Rcout << "( " << col[0]-1 << " )" << NodeKeys << std::endl;
@@ -183,17 +188,17 @@ static void sElemHandler(XML::Element &elem, void *userData)
 
 	std::vector<std::string>* parentPrefix = pD->getParentPrefix();
 
-	const Rcpp::List* tableHeaders = pD->getTableHeaders();
-	const Rcpp::NumericVector* prefixLens = pD->getPrefixLens();
+	std::map<std::string, std::vector<std::string> >* tableHeaders = pD->getTableHeaders();
+	std::map<std::string, int >* prefixLens = pD->getPrefixLens();
 	std::map<std::string, std::list<std::vector<std::string> > >* ret = pD->getRet();
+	std::vector<std::string>* tableNames = pD->getTableNames();
 
 	// Get root
 	const char* root = elem.GetName();
 
 	// Check if we are almost near the value
-	Rcpp::CharacterVector rK(root);
-	Rcpp::CharacterVector TableNames = tableHeaders->names();
-	Rcpp::IntegerVector check = match(rK, TableNames);
+	std::string rK(root);
+	unsigned check = find(tableNames->begin(), tableNames->end(), rK) - tableNames->begin();
 
 	// Prepare prefix
 	std::vector<std::string>* prefixPtr;
@@ -204,17 +209,15 @@ static void sElemHandler(XML::Element &elem, void *userData)
 	// Prepare content pointer
 	std::vector<std::string>* contentPtr;
 
-	if( check[0] > 0 ) {
+	if( check < tableNames->size() ) {
 
 		parent = root;
-
-		//std::string tStr(root);
 
 		// Getting result placeholder
 		std::list<std::vector<std::string> >* tempRes = &((*ret)[(char*) root]);
 
 		// Getting header keys
-		Rcpp::CharacterVector NodeKeys = (*tableHeaders)[(char*) root];
+		std::vector<std::string> NodeKeys = (*tableHeaders)[root];
 
 		// Create content
 		std::vector<std::string> *content = new std::vector<std::string>(NodeKeys.size());
@@ -234,11 +237,10 @@ static void sElemHandler(XML::Element &elem, void *userData)
 			XML::Attribute a = elem.GetAttrList();
 			while (a)
 			{
-				Rcpp::CharacterVector NodeKey(a.GetName());
-				Rcpp::IntegerVector col = match(NodeKey, NodeKeys);
-				if( col[0] > 0 ) {
-					int idx = col[0] - 1;
-					(*content)[idx] = (*prefix)[idx] = a.GetValue();
+				std::string NodeKey(a.GetName());
+				unsigned col = find(NodeKeys.begin(), NodeKeys.end(), NodeKey) - NodeKeys.begin();
+				if( col < NodeKeys.size() ) {
+					(*content)[col] = (*prefix)[col] = a.GetValue();
 				}
 				a = a.GetNext();
 			}
@@ -260,14 +262,13 @@ static void sElemHandler(XML::Element &elem, void *userData)
 		Rcpp::Rcout << '\n';
 #endif
 
-
 	} else {
 		parent = pD->getParentName();
 		prefixPtr = parentPrefix;
 		contentPtr = pD->getContent();
 	}
 
-	passingData *newPD = new passingData(*tableHeaders, *prefixLens, ret, parent, prefixPtr, root, contentPtr);
+	passingData *newPD = new passingData(tableHeaders, prefixLens, ret, tableNames, parent, prefixPtr, root, contentPtr);
 
 	// handle the subelements (and data)
 	const XML::Handler handlers[] = {
@@ -322,6 +323,19 @@ static void rootHandler(XML::Element &elem, void *userData)
 	Rcpp::List tableHeaders = Rcpp::as<Rcpp::List>((*xsdObjects)[xsd])["tableHeaders"];
 	Rcpp::NumericVector prefixLens = Rcpp::as<Rcpp::List>((*xsdObjects)[xsd])["prefixLens"];
 
+	// convert R headers to std c++
+	std::vector<std::string>  tableNamesCpp;
+	std::map<std::string, std::vector<std::string> > tableHeadersCpp;
+	std::map<std::string, int > prefixLensCpp;
+	Rcpp::CharacterVector tbNames = tableHeaders.names();
+
+	for(Rcpp::CharacterVector::iterator it = tbNames.begin(); it != tbNames.end(); ++it) {
+		std::string its(*it);
+		tableNamesCpp.push_back(its);
+		tableHeadersCpp[its] = Rcpp::as<std::vector<std::string> >(tableHeaders[its]);
+		prefixLensCpp[its] = prefixLens[its];
+	}
+
 #ifdef DEBUG
 	// Print out XML information
 	Rcpp::Rcout << "Start from root: " << root << std::endl;
@@ -371,11 +385,10 @@ static void rootHandler(XML::Element &elem, void *userData)
 		XML::Attribute a = elem.GetAttrList();
 		while (a)
 		{
-			Rcpp::CharacterVector NodeKey(a.GetName());
-			Rcpp::IntegerVector col = match(NodeKey, NodeKeys);
-			if( col[0] > 0 ) {
-				int idx = col[0] - 1;
-				(*content)[idx] = (*prefix)[idx] = a.GetValue();
+			std::string NodeKey(a.GetName());
+			unsigned col = find(NodeKeys.begin(), NodeKeys.end(), NodeKey) - NodeKeys.begin();
+			if( col < NodeKeys.size() ) {
+				(*content)[col] = (*prefix)[col] = a.GetValue();
 			}
 			a = a.GetNext();
 		}
@@ -402,7 +415,7 @@ static void rootHandler(XML::Element &elem, void *userData)
 #endif
 
 	// Prepare passing data store
-	passingData *pD = new passingData(tableHeaders, prefixLens, ret, root, prefix, root, content);
+	passingData *pD = new passingData(&tableHeadersCpp, &prefixLensCpp, ret, &tableNamesCpp, root, prefix, root, content);
 
 	// Handle sub-elements and data
 	const XML::Handler handlers[] = {
