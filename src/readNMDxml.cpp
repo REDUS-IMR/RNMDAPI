@@ -162,13 +162,20 @@ Rcpp::List readNMDxmlCpp(Rcpp::CharacterVector inputFile, Rcpp::List xsdObjects)
 			te.erase(pos, toErase.length());
 		}
 
-		pugi::xpath_query query_countnode(te.c_str());
-		int count = query_countnode.evaluate_number(doc);
-#ifdef DEBUG
-		std::cout << te << ", "<<  count << std::endl;
-#endif
+		int count = 0;
+
+		if(te != "count()") {
+			pugi::xpath_query query_countnode(te.c_str());
+			count = query_countnode.evaluate_number(doc);
+		}
+
 		// Matrix
 		Rcpp::CharacterVector tH = tableHeaders[tStr.c_str()];
+
+#ifdef DEBUG
+		Rcpp::Rcout << te << ", "<<  count << ", " << tH.size() << std::endl;
+#endif
+
 		Rcpp::CharacterMatrix xy((int)count, tH.size());
 		std::fill(xy.begin(), xy.end(), Rcpp::CharacterVector::get_na()) ;
 		ret.push_back( xy, tStr );
