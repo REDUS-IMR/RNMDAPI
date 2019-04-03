@@ -5,3 +5,7 @@ readNMDxmlCpp <- function(inputFile, xsdObjects) {
     .Call('_RNMDAPI_readNMDxmlCpp', PACKAGE = 'RNMDAPI', inputFile, xsdObjects)
 }
 
+readNMDxmlCppStream <- function(inputFile, xsdObjects) {
+    .Call('_RNMDAPI_readNMDxmlCppStream', PACKAGE = 'RNMDAPI', inputFile, xsdObjects)
+}
+

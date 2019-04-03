@@ -3,6 +3,7 @@
 export(readNMDxmlFile)
 importFrom(Rcpp,sourceCpp)
 importFrom(data.table,as.data.table)
+importFrom(data.table,transpose)
 importFrom(utils,tail)
 importFrom(xml2,read_xml)
 importFrom(xml2,xml_attrs)
