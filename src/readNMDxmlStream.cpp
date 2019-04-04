@@ -298,10 +298,42 @@ static void rootHandler(XML::Element &elem, void *userData)
 	const Rcpp::List *xsdObjects = data->getXsdObjects();
 
 	const char* root = elem.GetName();
-	char* xmlns = strdup(elem.GetAttribute("xmlns"));
+	char* xmlns = NULL;
+	char* ns = NULL;
+
+	// Getting the namespace
+	if (elem.NumAttributes() > 0)
+	{
+		std::string xmlStr("xmlns");
+		XML::Attribute a = elem.GetAttrList();
+		while (a)
+		{
+			std::string NodeKey(a.GetName());
+			std::size_t found = NodeKey.find(xmlStr);
+			if (found!=std::string::npos) {
+				xmlns = strdup(a.GetValue());
+				// Try to get the namespace
+				char *dup = strdup(NodeKey.c_str());
+				strtok(dup, ":");
+				char *tmp = strtok(NULL, ":");
+				if(tmp != NULL)
+					ns = strdup(tmp);
+				free(dup);
+				break;
+			}
+			a = a.GetNext();
+		}
+	} else {
+		Rcpp::stop("Can not find the XML namespace, exiting...\n");
+	}
+
 
 	Rcpp::Rcout << "Root: " << root << "\n";
-	Rcpp::Rcout << "Document: " << xmlns << "\n";
+	Rcpp::Rcout << "XML namespace: " << xmlns << "\n";
+	if(ns != NULL && strlen(ns) > 0)
+		Rcpp::Rcout << "XML namespace prefix: " << ns << "\n";
+	else
+		ns = NULL;
 
 	// Process namespace to get the correct XSD data
 	char *token = std::strtok(xmlns, "/");
@@ -333,11 +365,29 @@ static void rootHandler(XML::Element &elem, void *userData)
 	std::map<std::string, int > prefixLensCpp;
 	Rcpp::CharacterVector tbNames = tableHeaders.names();
 
+	std::string appendNS(":");
+	if(ns != NULL)
+		appendNS.insert(0, ns);
+
 	for(Rcpp::CharacterVector::iterator it = tbNames.begin(); it != tbNames.end(); ++it) {
 		std::string its(*it);
+		std::string itsrc(*it);
+
+		// Use Namespace for table names
+		if(ns != NULL)
+			its.insert(0, appendNS);
+
 		tableNamesCpp.push_back(its);
-		tableHeadersCpp[its] = Rcpp::as<std::vector<std::string> >(tableHeaders[its]);
-		prefixLensCpp[its] = prefixLens[its];
+		tableHeadersCpp[its] = Rcpp::as<std::vector<std::string> >(tableHeaders[itsrc]);
+
+		// Appending namespace (if any) into table header names
+		if(ns != NULL && tableHeadersCpp[its].size() != 0) {
+			for( unsigned subit = 0; subit < tableHeadersCpp[its].size(); ++subit) {
+				tableHeadersCpp[its][subit].insert(0, appendNS);
+			}
+		}
+
+		prefixLensCpp[its] = prefixLens[itsrc];
 	}
 
 #ifdef DEBUG
@@ -345,30 +395,27 @@ static void rootHandler(XML::Element &elem, void *userData)
 	Rcpp::Rcout << "Start from root: " << root << std::endl;
 #endif
 
-	// Prepare counters
-	Rcpp::CharacterVector tables(tableHeaders.names());
-
 	// Prepare the result map
 	std::map<std::string, std::list<std::vector<std::string> > >* ret = new std::map<std::string, std::list<std::vector<std::string> > >;
 
 	// Pre-allocations
-	for(int i = 0; i < tables.size(); i++) {
+	for(unsigned i = 0; i < tableNamesCpp.size(); i++) {
 		std::list<std::vector<std::string> >* df = new std::list<std::vector<std::string> >;
 #ifdef __cpp_rvalue_references
 		// For c++11 enabled compiler
-		(*ret)[(char*)tables[i]] = std::move(*df);
+		(*ret)[tableNamesCpp[i]] = std::move(*df);
 #else
-		(*ret)[(char*)tables[i]] = *df;
+		(*ret)[tableNamesCpp[i]] = *df;
 #endif
 
 #ifdef DEBUG
-		std::cout << "size aft: " << (char*)tables[i] << "->" <<  (*ret)[(char*)tables[i]].size() << std::endl;
+		std::cout << "size aft: " << tableNamesCpp[i] << "->" <<  (*ret)[tableNamesCpp[i]].size() << std::endl;
 #endif
 	}
 
 	// Get the first root content
 	std::string tStr(root);
-	Rcpp::CharacterVector NodeKeys = tableHeaders[tStr];
+	std::vector<std::string> NodeKeys = tableHeadersCpp[tStr];
 	std::vector<std::string> *content = new std::vector<std::string>(NodeKeys.size());
 
 #ifdef __cpp_rvalue_references
@@ -380,12 +427,12 @@ static void rootHandler(XML::Element &elem, void *userData)
 	content = &((*ret)[tStr].back());
 
 	// Create prefix storage
-	std::vector<std::string> *prefix = new std::vector<std::string>(prefixLens[tStr]);
+	std::vector<std::string> *prefix = new std::vector<std::string>(prefixLensCpp[tStr]);
 
 	// begin new element (and write attributes)
 	if (elem.NumAttributes() > 0)
 	{
-		Rcpp::CharacterVector NodeKeys = tableHeaders[root];
+		std::vector<std::string> NodeKeys = tableHeadersCpp[root];
 		XML::Attribute a = elem.GetAttrList();
 		while (a)
 		{
@@ -432,6 +479,11 @@ static void rootHandler(XML::Element &elem, void *userData)
 
 	// Put all data into return data
 	data->setReturnData(*ret);
+
+	// After strdup()
+	free(xmlns);
+	if(ns != NULL)
+		free(ns);
 }
 
 
