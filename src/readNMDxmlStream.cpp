@@ -168,15 +168,19 @@ static void sDataHandler(const XML_Char *data, size_t len, void *userData)
 			std::vector<std::string> NodeKeys = (*tableHeaders)[parent];
 			unsigned col = find(NodeKeys.begin(), NodeKeys.end(), NodeKey) - NodeKeys.begin();
 
-			// Put the value inside content
-			(*contentPtr)[col] = strdata;
+			if( col >= NodeKeys.size() ) {
+				Rcpp::Rcout << parent << "-> " << column << ": " << strdata << std::endl;
+				Rcpp::stop("Found a value of an undefined element! Stopping process...");
+			}
 
 #ifdef DEBUG
-			Rcpp::Rcout << "( " << col[0]-1 << " )" << NodeKeys << std::endl;
+			Rcpp::Rcout << "( " << col << " )" << std::endl;
 			for (std::vector<std::string>::iterator it = contentPtr->begin() ; it != contentPtr->end(); ++it)
 				Rcpp::Rcout << *it << " ";
 			Rcpp::Rcout << '\n';
 #endif
+			// Put the value inside content
+			(*contentPtr)[col] = strdata;
 		}
 	}
 }
@@ -358,7 +362,7 @@ static void rootHandler(XML::Element &elem, void *userData)
 #endif
 
 #ifdef DEBUG
-		std::cout << "size aft: " << tStr << "->" <<  (*ret)[tStr].size() << std::endl;
+		std::cout << "size aft: " << (char*)tables[i] << "->" <<  (*ret)[(char*)tables[i]].size() << std::endl;
 #endif
 	}
 
