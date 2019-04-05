@@ -25,8 +25,10 @@ void processNode(pugi::xml_node& node, const std::vector<const char*>& parentPre
 
 	// Apply parent attributes to row and to children prefix
 	for(unsigned long i = 0; i < parentPrefix.size(); i++) {
-		tempRes(levelCtrs[root], i) = parentPrefix[i];
-		prefix[i] = parentPrefix[i];
+		if(parentPrefix[i] != NULL) {
+			tempRes(levelCtrs[root], i) = parentPrefix[i];
+			prefix[i] = parentPrefix[i];
+		}
 	}
 
 	// Getting attributes
