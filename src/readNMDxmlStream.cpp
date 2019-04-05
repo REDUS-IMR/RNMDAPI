@@ -541,8 +541,12 @@ Rcpp::List readNMDxmlCppStream(Rcpp::CharacterVector inputFile, Rcpp::List xsdOb
 		// Iterate List
 		unsigned currentRow = 0;
 		for (std::list<std::vector<std::string>* >::iterator subit = mylist->begin(); subit != mylist->end(); ++subit) {
-			for (unsigned j = 0; j < maxCol; j++)
-				xy(currentRow, j) = (*(*subit))[j];
+			for (unsigned j = 0; j < maxCol; j++) {
+				if(((*(*subit))[j]).empty())
+					xy(currentRow, j) = NA_STRING;
+				else
+					xy(currentRow, j) = (*(*subit))[j];
+			}
 			currentRow++;
 
 			// Free up memory
