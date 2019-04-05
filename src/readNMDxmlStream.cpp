@@ -524,14 +524,14 @@ Rcpp::List readNMDxmlCppStream(Rcpp::CharacterVector inputFile, Rcpp::List xsdOb
 			continue;
 		unsigned maxCol = mylist->front()->size();
 
-//#ifdef DEBUG
+#ifdef DEBUG
 		Rcpp::Rcout << it->first
 		            << ": "
 		            << maxRow
 			    << ", "
 			    << maxCol
 		            << std::endl;
-//#endif
+#endif
 		// Create matrix
 		Rcpp::CharacterMatrix xy(maxRow, maxCol);
 		result[it->first] = xy;
