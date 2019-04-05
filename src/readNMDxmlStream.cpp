@@ -330,10 +330,12 @@ static void rootHandler(XML::Element &elem, void *userData)
 
 	Rcpp::Rcout << "Root: " << root << "\n";
 	Rcpp::Rcout << "XML namespace: " << xmlns << "\n";
-	if(ns != NULL && strlen(ns) > 0)
+	if(ns != NULL && strlen(ns) > 0) {
 		Rcpp::Rcout << "XML namespace prefix: " << ns << "\n";
-	else
+		Rcpp::stop("Unfortunately, namespace support is still broken!!!\n");
+	} else {
 		ns = NULL;
+	}
 
 	// Process namespace to get the correct XSD data
 	char *token = std::strtok(xmlns, "/");
@@ -350,7 +352,7 @@ static void rootHandler(XML::Element &elem, void *userData)
 	char xsd[50];
 	sprintf (xsd, "%s%s.xsd", one, two);
 
-	Rcpp::Rcout << "Detected XSD: " << xsd << std::endl;
+	Rcpp::Rcout << "Using XSD: " << xsd << std::endl;
 
 	// Put xsd info into return data
 	data->setXsdUsed(xsd);
@@ -363,7 +365,7 @@ static void rootHandler(XML::Element &elem, void *userData)
 	std::vector<std::string>  tableNamesCpp;
 	std::map<std::string, std::vector<std::string> > tableHeadersCpp;
 	std::map<std::string, int > prefixLensCpp;
-	Rcpp::CharacterVector tbNames = tableHeaders.names();
+	Rcpp::CharacterVector tbNames(tableHeaders.names());
 
 	std::string appendNS(":");
 	if(ns != NULL)
