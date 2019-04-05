@@ -58,17 +58,12 @@ readNMDxmlFile <- function(xmlFilePath, stream = FALSE) {
 	# Invoke C++ xml reading
 	if(stream) {
 		res <- readNMDxmlCppStream(xmlFilePath, xsdObjects)
-
-		result <- lapply(res[["result"]], function(x) transpose(x))
-		names(result) <- names(res[["result"]])
-		xsd <- res[["xsd"]]
-
 	} else {
 		res <- readNMDxmlCpp(xmlFilePath, xsdObjects)
-
-		result <- res[["result"]]
-		xsd <- res[["xsd"]]
 	}
+
+	result <- res[["result"]]
+	xsd <- res[["xsd"]]
 
 	tableHeaders <- xsdObjects[[xsd]][["tableHeaders"]]
 	tableTypes <- xsdObjects[[xsd]][["tableTypes"]]

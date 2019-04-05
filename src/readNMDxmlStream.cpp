@@ -33,9 +33,9 @@ private:
 	std::map<std::string, std::vector<std::string> >* tableHeaders;
 	std::map<std::string, int >* prefixLens;
 	std::vector<std::string>* tableNames;
-	std::map<std::string, std::list<std::vector<std::string> > >* ret;
+	std::map<std::string, std::list<std::vector<std::string>* >* >* ret;
 public:
-	persistentData(std::map<std::string, std::vector<std::string> >* a, std::map<std::string, int >* b, std::map<std::string, std::list<std::vector<std::string> > >* c, std::vector<std::string>* h)
+	persistentData(std::map<std::string, std::vector<std::string> >* a, std::map<std::string, int >* b, std::map<std::string, std::list<std::vector<std::string>* >* >* c, std::vector<std::string>* h)
 		:
 		tableHeaders(a),
 		prefixLens(b),
@@ -54,7 +54,7 @@ public:
 	{
 		return tableNames;
 	}
-	std::map<std::string, std::list<std::vector<std::string> > >* getRet()
+	std::map<std::string, std::list<std::vector<std::string>* >* >* getRet()
 	{
 		return ret;
 	}
@@ -69,7 +69,7 @@ private:
 	std::vector<std::string>* content;
 
 public:
-	passingData(std::map<std::string, std::vector<std::string> >* a, std::map<std::string, int >* b, std::map<std::string, std::list<std::vector<std::string> > >* c, std::vector<std::string>* h, const char* d, std::vector<std::string>* e, const char* f, std::vector<std::string>* g) : persistentData(a, b, c, h),
+	passingData(std::map<std::string, std::vector<std::string> >* a, std::map<std::string, int >* b, std::map<std::string, std::list<std::vector<std::string>* >* >* c, std::vector<std::string>* h, const char* d, std::vector<std::string>* e, const char* f, std::vector<std::string>* g) : persistentData(a, b, c, h),
 		parent(d),
 		parentPrefix(e),
 		column(f),
@@ -101,14 +101,19 @@ public:
 
 class returnData {
 private:
-	const char* xsdUsed;
-	std::map<std::string, std::list<std::vector<std::string> > >* ret;
+	char* xsdUsed;
+	std::map<std::string, std::list<std::vector<std::string>* >* >* ret;
 	const Rcpp::List *xsdObjects;
 
 public:
 	returnData(Rcpp::List& a) :
 		xsdObjects(&a)
 	{}
+
+	~returnData()
+	{
+		free(xsdUsed);
+	}
 	const Rcpp::List *getXsdObjects()
 	{
 		return xsdObjects;
@@ -117,7 +122,7 @@ public:
 	{
 		xsdUsed = strdup(input);
 	}
-	void setReturnData(std::map<std::string, std::list<std::vector<std::string> > >& input)
+	void setReturnData(std::map<std::string, std::list<std::vector<std::string>* >* >& input)
 	{
 		ret = &input;
 	}
@@ -125,7 +130,7 @@ public:
 	{
 		return xsdUsed;
 	}
-	std::map<std::string, std::list<std::vector<std::string> > >* getReturnData()
+	std::map<std::string, std::list<std::vector<std::string>* >* >* getReturnData()
 	{
 		return ret;
 	}
@@ -194,7 +199,7 @@ static void sElemHandler(XML::Element &elem, void *userData)
 
 	std::map<std::string, std::vector<std::string> >* tableHeaders = pD->getTableHeaders();
 	std::map<std::string, int >* prefixLens = pD->getPrefixLens();
-	std::map<std::string, std::list<std::vector<std::string> > >* ret = pD->getRet();
+	std::map<std::string, std::list<std::vector<std::string>* >* >* ret = pD->getRet();
 	std::vector<std::string>* tableNames = pD->getTableNames();
 
 	// Get root
@@ -219,7 +224,7 @@ static void sElemHandler(XML::Element &elem, void *userData)
 		parent = root;
 
 		// Getting result placeholder
-		std::list<std::vector<std::string> >* tempRes = &((*ret)[(char*) root]);
+		std::list<std::vector<std::string>* >* tempRes = (*ret)[(char*) root];
 
 		// Getting header keys
 		std::vector<std::string> NodeKeys = (*tableHeaders)[root];
@@ -253,12 +258,8 @@ static void sElemHandler(XML::Element &elem, void *userData)
 
 
 		// Push back the result
-#ifdef __cpp_rvalue_references
-		tempRes->push_back(std::move(*content));
-#else
-		tempRes->push_back(*content);
-#endif
-		contentPtr = &(tempRes->back());
+		tempRes->push_back(content);
+		contentPtr = tempRes->back();
 		prefixPtr = &prefix;
 
 #ifdef DEBUG
@@ -289,7 +290,7 @@ static void sElemHandler(XML::Element &elem, void *userData)
 		Rcpp::Rcout << *it << " ";
 	Rcpp::Rcout << '\n';
 #endif
-
+	delete newPD;
 }
 
 static void rootHandler(XML::Element &elem, void *userData)
@@ -399,20 +400,14 @@ static void rootHandler(XML::Element &elem, void *userData)
 #endif
 
 	// Prepare the result map
-	std::map<std::string, std::list<std::vector<std::string> > >* ret = new std::map<std::string, std::list<std::vector<std::string> > >;
+	std::map<std::string, std::list<std::vector<std::string>* >* >* ret = new std::map<std::string, std::list<std::vector<std::string>* >* >;
 
 	// Pre-allocations
 	for(unsigned i = 0; i < tableNamesCpp.size(); i++) {
-		std::list<std::vector<std::string> >* df = new std::list<std::vector<std::string> >;
-#ifdef __cpp_rvalue_references
-		// For c++11 enabled compiler
-		(*ret)[tableNamesCpp[i]] = std::move(*df);
-#else
-		(*ret)[tableNamesCpp[i]] = *df;
-#endif
-
+		std::list<std::vector<std::string>* >* df = new std::list<std::vector<std::string>* >;
+		(*ret)[tableNamesCpp[i]] = df;
 #ifdef DEBUG
-		std::cout << "size aft: " << tableNamesCpp[i] << "->" <<  (*ret)[tableNamesCpp[i]].size() << std::endl;
+		std::cout << "size aft: " << tableNamesCpp[i] << "->" <<  (*ret)[tableNamesCpp[i]]->size() << std::endl;
 #endif
 	}
 
@@ -421,16 +416,11 @@ static void rootHandler(XML::Element &elem, void *userData)
 	std::vector<std::string> NodeKeys = tableHeadersCpp[tStr];
 	std::vector<std::string> *content = new std::vector<std::string>(NodeKeys.size());
 
-#ifdef __cpp_rvalue_references
-	// For c++11 enabled compiler
-	(*ret)[tStr].push_back(std::move(*content));
-#else
-	(*ret)[tStr].push_back(*content);
-#endif
-	content = &((*ret)[tStr].back());
+	(*ret)[tStr]->push_back(content);
+	content = (*ret)[tStr]->back();
 
 	// Create prefix storage
-	std::vector<std::string> *prefix = new std::vector<std::string>(prefixLensCpp[tStr]);
+	std::vector<std::string> prefix(prefixLensCpp[tStr]);
 
 	// begin new element (and write attributes)
 	if (elem.NumAttributes() > 0)
@@ -442,24 +432,24 @@ static void rootHandler(XML::Element &elem, void *userData)
 			std::string NodeKey(a.GetName());
 			unsigned col = find(NodeKeys.begin(), NodeKeys.end(), NodeKey) - NodeKeys.begin();
 			if( col < NodeKeys.size() ) {
-				(*content)[col] = (*prefix)[col] = a.GetValue();
+				(*content)[col] = prefix[col] = a.GetValue();
 			}
 			a = a.GetNext();
 		}
 	}
 
 #ifdef DEBUG
-	for ( std::map<std::string, std::list<std::vector<std::string> > >::iterator it = ret->begin(); it != ret->end(); it++ )
+	for ( std::map<std::string, std::list<std::vector<std::string>* >* >::iterator it = ret->begin(); it != ret->end(); it++ )
 	{
 		Rcpp::Rcout << it->first  // string (key)
 		            << ':'
-		            << (it->second).size()   // string's value
+		            << (it->second)->size()   // string's value
 		            << std::endl ;
 	}
 	Rcpp::Rcout << std::endl;
 
 	// Check first content
-	for (std::vector<std::string>::iterator it = prefix->begin() ; it != prefix->end(); ++it)
+	for (std::vector<std::string>::iterator it = prefix.begin() ; it != prefix.end(); ++it)
 		Rcpp::Rcout << *it << " ";
 	Rcpp::Rcout << '\n';
 
@@ -469,7 +459,7 @@ static void rootHandler(XML::Element &elem, void *userData)
 #endif
 
 	// Prepare passing data store
-	passingData *pD = new passingData(&tableHeadersCpp, &prefixLensCpp, ret, &tableNamesCpp, root, prefix, root, content);
+	passingData *pD = new passingData(&tableHeadersCpp, &prefixLensCpp, ret, &tableNamesCpp, root, &prefix, root, content);
 
 	// Handle sub-elements and data
 	const XML::Handler handlers[] = {
@@ -487,6 +477,8 @@ static void rootHandler(XML::Element &elem, void *userData)
 	free(xmlns);
 	if(ns != NULL)
 		free(ns);
+
+	delete pD;
 }
 
 
@@ -520,25 +512,56 @@ Rcpp::List readNMDxmlCppStream(Rcpp::CharacterVector inputFile, Rcpp::List xsdOb
 
 	Rcpp::List result = Rcpp::List::create();
 
-	std::map<std::string, std::list<std::vector<std::string> > >* res = data->getReturnData();
+	std::map<std::string, std::list<std::vector<std::string>* >* >* res = data->getReturnData();
 
-	for ( std::map<std::string, std::list<std::vector<std::string> > >::iterator it = res->begin(); it != res->end(); it++ )
+	for ( std::map<std::string, std::list<std::vector<std::string>* >* >::iterator it = res->begin(); it != res->end(); it++ )
 	{
-#ifdef DEBUG
+		std::list<std::vector<std::string>* >* mylist = it->second;
+
+		// Create counts
+		unsigned maxRow = mylist->size();
+		unsigned maxCol = mylist->front()->size();
+
+//#ifdef DEBUG
 		Rcpp::Rcout << it->first
-		            << ':'
-		            << (it->second).size()
-		            << std::endl ;
-#endif
-		result[it->first] = Rcpp::wrap(it->second);
+		            << ": "
+		            << maxRow
+			    << ", "
+			    << maxCol
+		            << std::endl;
+//#endif
+		// Create matrix
+		Rcpp::CharacterMatrix xy(maxRow, maxCol);
+		result[it->first] = xy;
+
+		// Iterate List
+		unsigned currentRow = 0;
+		for (std::list<std::vector<std::string>* >::iterator subit = mylist->begin(); subit != mylist->end(); ++subit) {
+			for (unsigned j = 0; j < maxCol; j++)
+				xy(currentRow, j) = (*(*subit))[j];
+			currentRow++;
+
+			// Free up memory
+			//std::vector<std::string>().swap((*(*subit)));
+			delete *subit;
+		}
+		// Free up memory
+		//std::list<std::vector<std::string>* >().swap(*mylist);
+		delete mylist;
 	}
+	// Free up memory
+	//std::map<std::string, std::list<std::vector<std::string>* >* >().swap(*res);
+	delete res;
 
 	// Return results and xsd name
-	return Rcpp::List::create(
+	Rcpp::List rReturn = Rcpp::List::create(
 	           Rcpp::_["xsd"]  = data->getXsdUsed(),
 	           Rcpp::_["result"]  = result
 	       );
 
-	return 0;
+	// Free up memory
+	delete data;
+
+	return rReturn;
 }
 
