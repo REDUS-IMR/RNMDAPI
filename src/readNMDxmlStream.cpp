@@ -205,6 +205,7 @@ static void sElemHandler(XML::Element &elem, void *userData)
 	unsigned check = find(tableNames->begin(), tableNames->end(), rK) - tableNames->begin();
 
 	// Prepare prefix
+	std::vector<std::string> prefix;
 	std::vector<std::string>* prefixPtr;
 
 	// Prepare parent
@@ -228,11 +229,11 @@ static void sElemHandler(XML::Element &elem, void *userData)
 
 		// Prefix resize
 		int prefixSize = (*prefixLens)[(char*) root];
-		std::vector<std::string> *prefix = new std::vector<std::string>(prefixSize);
+		prefix.resize(prefixSize);
 
 		// Apply parent attributes to row and to children prefix
 		for(unsigned long i = 0; i < parentPrefix->size(); i++) {
-			(*content)[i] = (*prefix)[i] = (*parentPrefix)[i];
+			(*content)[i] = prefix[i] = (*parentPrefix)[i];
 		}
 
 		// begin new element (and write attributes)
@@ -244,7 +245,7 @@ static void sElemHandler(XML::Element &elem, void *userData)
 				std::string NodeKey(a.GetName());
 				unsigned col = find(NodeKeys.begin(), NodeKeys.end(), NodeKey) - NodeKeys.begin();
 				if( col < NodeKeys.size() ) {
-					(*content)[col] = (*prefix)[col] = a.GetValue();
+					(*content)[col] = prefix[col] = a.GetValue();
 				}
 				a = a.GetNext();
 			}
@@ -258,7 +259,7 @@ static void sElemHandler(XML::Element &elem, void *userData)
 		tempRes->push_back(*content);
 #endif
 		contentPtr = &(tempRes->back());
-		prefixPtr = prefix;
+		prefixPtr = &prefix;
 
 #ifdef DEBUG
 		for (std::vector<std::string>::iterator it = contentPtr->begin() ; it != contentPtr->end(); ++it)
