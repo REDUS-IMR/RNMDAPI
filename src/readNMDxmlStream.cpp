@@ -520,9 +520,11 @@ Rcpp::List readNMDxmlCppStream(Rcpp::CharacterVector inputFile, Rcpp::List xsdOb
 
 		// Create counts
 		unsigned maxRow = mylist->size();
+		unsigned maxCol;
 		if(maxRow == 0)
-			continue;
-		unsigned maxCol = mylist->front()->size();
+			maxCol = 0;
+		else
+			maxCol = mylist->front()->size();
 
 #ifdef DEBUG
 		Rcpp::Rcout << it->first

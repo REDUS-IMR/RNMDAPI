@@ -25,6 +25,10 @@ readNMDxmlFile <- function(xmlFilePath, stream = FALSE) {
 		# Get result matrix
 		y <- result[[x]]
 
+		# Handle empty data
+		if(ncol(y) == 0)
+			y <- matrix(data = "", nrow = 0, ncol = length(tableHeaders[[x]]))
+
 		# Convert to data.table
 		z <- as.data.table(y)
 
