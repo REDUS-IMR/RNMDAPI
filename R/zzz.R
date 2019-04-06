@@ -1,5 +1,5 @@
 # Set local package extdata location
-utils::globalVariables(c("localEnv", ":=") )
+utils::globalVariables(c("xsdObjects", "localEnv", ":=") )
 
 .onLoad <- function(libname, pkgname){
 	assign("localEnv", new.env(), parent.env(environment()))

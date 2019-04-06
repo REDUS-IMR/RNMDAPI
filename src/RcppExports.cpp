@@ -6,24 +6,33 @@
 using namespace Rcpp;
 
 // readNMDxmlCpp
-Rcpp::List readNMDxmlCpp(Rcpp::CharacterVector inputFile, Rcpp::CharacterVector root, Rcpp::List treeStruct, Rcpp::List tableHeaders, Rcpp::NumericVector prefixLens, Rcpp::NumericVector levelDims);
-RcppExport SEXP _RNMDAPI_readNMDxmlCpp(SEXP inputFileSEXP, SEXP rootSEXP, SEXP treeStructSEXP, SEXP tableHeadersSEXP, SEXP prefixLensSEXP, SEXP levelDimsSEXP) {
+Rcpp::List readNMDxmlCpp(Rcpp::CharacterVector inputFile, Rcpp::List xsdObjects);
+RcppExport SEXP _RNMDAPI_readNMDxmlCpp(SEXP inputFileSEXP, SEXP xsdObjectsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::CharacterVector >::type inputFile(inputFileSEXP);
-    Rcpp::traits::input_parameter< Rcpp::CharacterVector >::type root(rootSEXP);
-    Rcpp::traits::input_parameter< Rcpp::List >::type treeStruct(treeStructSEXP);
-    Rcpp::traits::input_parameter< Rcpp::List >::type tableHeaders(tableHeadersSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type prefixLens(prefixLensSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type levelDims(levelDimsSEXP);
-    rcpp_result_gen = Rcpp::wrap(readNMDxmlCpp(inputFile, root, treeStruct, tableHeaders, prefixLens, levelDims));
+    Rcpp::traits::input_parameter< Rcpp::List >::type xsdObjects(xsdObjectsSEXP);
+    rcpp_result_gen = Rcpp::wrap(readNMDxmlCpp(inputFile, xsdObjects));
+    return rcpp_result_gen;
+END_RCPP
+}
+// readNMDxmlCppStream
+Rcpp::List readNMDxmlCppStream(Rcpp::CharacterVector inputFile, Rcpp::List xsdObjects);
+RcppExport SEXP _RNMDAPI_readNMDxmlCppStream(SEXP inputFileSEXP, SEXP xsdObjectsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::CharacterVector >::type inputFile(inputFileSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type xsdObjects(xsdObjectsSEXP);
+    rcpp_result_gen = Rcpp::wrap(readNMDxmlCppStream(inputFile, xsdObjects));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_RNMDAPI_readNMDxmlCpp", (DL_FUNC) &_RNMDAPI_readNMDxmlCpp, 6},
+    {"_RNMDAPI_readNMDxmlCpp", (DL_FUNC) &_RNMDAPI_readNMDxmlCpp, 2},
+    {"_RNMDAPI_readNMDxmlCppStream", (DL_FUNC) &_RNMDAPI_readNMDxmlCppStream, 2},
     {NULL, NULL, 0}
 };
 

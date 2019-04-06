@@ -4,20 +4,24 @@
 \alias{readNMDxmlFile}
 \title{Read NMD XML format file downloaded from IMR NMD API}
 \usage{
-readNMDxmlFile(xmlFilePath)
+readNMDxmlFile(xmlFilePath, stream = FALSE)
 }
 \arguments{
 \item{xmlFilePath}{full path to the XML file to be read.}
+
+\item{stream}{a streaming XML pull parser is used if this is set to TRUE. An XML DOM parser is used if this is set to FALSE. Default to FALSE.}
 }
 \value{
-List of data.table(s) containing the "flattened" XML data.
+List of data.table objects containing the "flattened" XML data.
 }
 \description{
-Read NMD XML format file. Supports only Biotic version 3 and Echosounder verion 1 format at the moment.
+Read NMD XML format file. Supports only Biotic version 1.4 and 3, Echosounder version 1, and Landing version 2 formats at the moment.
+Streaming XML pull parser can be used to avoid loading the whole XML into memory.
 }
 \examples{
 \dontrun{
-readNMDxmlFile("./test.xml")
+one <- readNMDxmlFile("./test.xml")
+two <- readNMDxmlFile("./test.xml", stream = TRUE)
 }
 
 }
