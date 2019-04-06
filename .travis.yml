@@ -23,6 +23,12 @@ after_success:
   # Look for binary bundle (*.tgz for OSX and *.tar.gz for Linux)
   - "export BIN_PKG_FILE=$(ls $PKGNAME*gz)"
   - "echo Resulting binary: $BIN_PKG_FILE"
+before_deploy:
+  # Set up git user name and tag this commit
+  - git config --global user.email "builds@travis-ci.com"
+  - git config --global user.name "Travis CI"
+  - export TRAVIS_TAG=$PKGNAME-$PKGVER-$TRAVIS_OS_NAME
+  - git tag $TRAVIS_TAG
 deploy:
   provider: releases
   api_key:
@@ -30,5 +36,4 @@ deploy:
   file: $BIN_PKG_FILE
   skip_cleanup: true
   on:
-    repo: REDUS-IMR/RNMDAPI
     branch: master
