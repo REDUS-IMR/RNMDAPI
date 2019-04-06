@@ -1,15 +1,17 @@
 #' Read NMD XML format file downloaded from IMR NMD API
 #'
-#' Read NMD XML format file. Supports only Biotic version 3 and Echosounder version 1 format at the moment.
+#' Read NMD XML format file. Supports only Biotic version 1.4 and 3, Echosounder version 1, and Landing version 2 formats at the moment.
+#' Streaming XML pull parser can be used to avoid loading the whole XML into memory.
 #'
 #' @param xmlFilePath full path to the XML file to be read.
-#' @param stream a streaming XML pull parser is used if this set to TRUE. A XML DOM parser is used if this set to FALSE. Default to FALSE.
+#' @param stream a streaming XML pull parser is used if this is set to TRUE. An XML DOM parser is used if this is set to FALSE. Default to FALSE.
 #'
-#' @return List of data.table(s) containing the "flattened" XML data.
+#' @return List of data.table objects containing the "flattened" XML data.
 #'
 #' @examples
 #' \dontrun{
-#' readNMDxmlFile("./test.xml")
+#' one <- readNMDxmlFile("./test.xml")
+#' two <- readNMDxmlFile("./test.xml", stream = TRUE)
 #' }
 #'
 #' @useDynLib RNMDAPI
