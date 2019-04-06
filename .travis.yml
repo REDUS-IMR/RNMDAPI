@@ -1,13 +1,34 @@
-# R for travis: see documentation at https://docs.travis-ci.com/user/languages/r
-
 language: R
-
 matrix:
   include:
-    - os: linux
-      r: release
-    - os: osx
-      r: release
-
+  - os: linux
+    r: release
+  - os: osx
+    r: release
 sudo: false
 cache: packages
+notifications:
+  email:
+    on_success: change
+    on_failure: change
+after_success:
+  # Get Package name and version from DESCRIPTION
+  - 'export PKGVER=$(sed -n "s/Version: *\([^ ]*\)/\1/p" DESCRIPTION)'
+  - 'export PKGNAME=$(sed -n "s/Package: *\([^ ]*\)/\1/p" DESCRIPTION)'
+  - 'export SRC_PKG_FILE=${PKGNAME}_${PKGVER}'
+  - "echo $SRC_PKG_FILE"
+  # Build binary and remove the source archive
+  - "R CMD INSTALL --build ${SRC_PKG_FILE}.tar.gz"
+  - "rm ${SRC_PKG_FILE}.tar.gz"
+  # Look for binary bundle (*.tgz for OSX and *.tar.gz for Linux)
+  - "export BIN_PKG_FILE=$(ls $PKGNAME*gz)"
+  - "echo Resulting binary: $BIN_PKG_FILE"
+deploy:
+  provider: releases
+  api_key:
+    secure: OS/5d3aij+1HI+enQud9dJoIiEF3C5hBCO/XmxE50sJ2swUlcHQAM4Radb1/LQgIgRm9Zz1cuUV/Ch7sgRDJzFf69U0IO08S6wb0f/xZZo0X0HZzG8YMGz+lD4PGmgt9kqWyWswih6e3vdF6rJQGotBqV+yvu+hb/vnrbSIsTL9YFhM3ueCY8SKysYkEYtuK5NnTUXXa2dXpnJBaIl16EXT5OJTSzngjlGpw0+2JfgUmgRvRYVNnTkrCGVRjAOZ+UQdgX1UwbQggJ06xXr315TurOEcnbesuerZW7ovRtzJswmJhZGJozzFbQtY6T3RUjM1jC7sZCERt9ZoxXzDC1vK+oBk3nC1VelJXIFyONeu14UNE+AlswJhI31+GxL4dXwW9O5jXBzBeMArpgjaHYVdi3ZsB+a43ti+H7bNyJVrgHACGIzUNFZkXsuLRMQkC7PQhf6iPtW/z9pWp8WVgJVw9BLcz1MNLHgEEg19sKSxWrbRg0CamSR7QrZqUVWytBWhBY/uGvAiDC1Qjl7+fUF+OLC44sT+AxU4bVrykdrTlmuy9FICs7jlW8rBQiQV9fSetLsBnxAC9J2jT1quF3G+Nd704IwUVrWB+YqD2kc5F1ErPw39qGgGtjka4IUVeEVVLSnVGueZyj3nJ+qoSjLlkFjhpE57/9OpkPFUpoV8=
+  file: $BIN_PKG_FILE
+  skip_cleanup: true
+  on:
+    repo: REDUS-IMR/RNMDAPI
+    branch: master
