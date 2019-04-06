@@ -15,11 +15,37 @@ cache:
 
 # Adapt as necessary starting from here
 
+for:
+-
+  skip_tags: true
+
 build_script:
   - travis-tool.sh install_deps
 
 test_script:
   - travis-tool.sh run_tests
+
+before_deploy:
+  - ps: |
+          $env:PKGVER = Select-String -Path .\DESCRIPTION -Pattern '^Version: ' | % {$_.line -replace "^Version: "}
+          $env:PKGNAME = Select-String -Path .\DESCRIPTION -Pattern '^Package: ' | % {$_.line -replace "^Package: "}
+          $SRC_PKG_FILE = "${env:PKGNAME}_$env:PKGVER"
+          Write-Host "File is $SRC_PKG_FILE"
+          $env:BIN_PKG_FILE = Get-ChildItem -Path . | Where-Object { $_.Extension -eq ".zip" }
+          Write-Host "Resulting binary: $env:BIN_PKG_FILE"
+
+deploy:
+  tag: '$(PKGNAME)-$(PKGVER)-windows'
+  release: '$(PKGNAME) version $(PKGVER) for Windows'
+  description: 'Automatic release for $(PKGNAME) version $(PKGVER) (binary for Windows platform).'
+  provider: GitHub
+  auth_token:
+    secure: GEXbXTe8GZsRvQ5m3UMYpB3soyUgLhlEEOPeg/CiFNYfYH2SlNWIz+9FsJo8jyo3
+  artifact: $(BIN_PKG_FILE)
+  draft: false
+  prerelease: false
+  on:
+    branch: master
 
 on_failure:
   - 7z a failure.zip *.Rcheck\*
