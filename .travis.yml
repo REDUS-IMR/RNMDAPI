@@ -11,6 +11,7 @@ notifications:
   email:
     on_success: change
     on_failure: change
+before_install: R -e 'source("https://install-github.me/r-lib/remotes")'
 after_success:
   # Get Package name and version from DESCRIPTION
   - 'export PKGVER=$(sed -n "s/Version: *\([^ ]*\)/\1/p" DESCRIPTION)'
