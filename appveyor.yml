@@ -35,9 +35,9 @@ before_deploy:
           Write-Host "Resulting binary: $env:BIN_PKG_FILE"
 
 deploy:
-  tag: '$(PKGNAME)-$(PKGVER)-windows'
-  release: '$(PKGNAME) version $(PKGVER) for Windows'
-  description: 'Automatic release for $(PKGNAME) version $(PKGVER) (binary for Windows platform).'
+  tag: '$(PKGNAME)-v$(PKGVER)'
+  release: '$(PKGNAME)-v$(PKGVER)'
+  description: ''
   provider: GitHub
   auth_token:
     secure: GEXbXTe8GZsRvQ5m3UMYpB3soyUgLhlEEOPeg/CiFNYfYH2SlNWIz+9FsJo8jyo3

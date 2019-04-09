@@ -1,16 +1,22 @@
 language: R
+env:
+  global:
+    secure: g8ij+38N/bOZ5A33KeQmkumEQj4nHJisNpIAzyt23J0MZPeEocMIM4h3+6eyA/87FI7Q86Y+nr4BloswHiDToQaMrL9So8NAevAL3ZRQCRGTjRGs5a7VAl3AkVgqWi/ouyS2IGoIycyLuutqcWmur+uUMRHCwjNjpKzbWcKupee9sClB0K7jKwoNpmbmvWNLR9oLEeu0YWnPUoW8f7vtGsGZyoBUoiwMqVP824KqPChZ7OznK7J4hs23Fv7F56LtJa7eCFrjDaUqBCeIB2oEWc5Lcb0D2kMOBkzoD/IXMwyGYITlP0m60ao6TOFjiHvOHE+xaprbAxojI5Ev2GKB212oCBM+Z7ey1tsVW3YtVwzk+YuxvQTUIPzRaA4k2n0+jMzj8kcfJ4kR8dWECgPGBAmF/z7k/0wkUc4UkOQ/YgW/r186GBtmCVADA+HuMRL4ROT+sm7oq31WhL5C2ORUWirIG8hMUDca9+1D3CWtvcd9xzVrqZCyQIOl2+Asjr+k6/QPCcNvzxGLH/ibvZXJgQfP2VP0+RH92Muyx4PYLv9ICh0VXNjbh3vZEGuSzaTYoK5bg49oD6CQUvtFDlhwIpTLz2/0WXL326R3fPGIrWxSFQhIhq6HnX4WWQ7z1rc/gwxM46gO5eb0Dget9GTHbhN6fqcVE9XSVm8cKWIt7Es=
 matrix:
   include:
   - os: linux
     r: release
   - os: osx
     r: release
+if: tag IS blank
 sudo: false
 cache: packages
 notifications:
   email:
     on_success: change
     on_failure: change
+before_install:
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then R -e 'source("https://install-github.me/r-lib/remotes")'; fi
 after_success:
   # Get Package name and version from DESCRIPTION
   - 'export PKGVER=$(sed -n "s/Version: *\([^ ]*\)/\1/p" DESCRIPTION)'
@@ -27,7 +33,7 @@ before_deploy:
   # Set up git user name and tag this commit
   - git config --global user.email "builds@travis-ci.com"
   - git config --global user.name "Travis CI"
-  - export TRAVIS_TAG=$PKGNAME-$PKGVER-$TRAVIS_OS_NAME
+  - export TRAVIS_TAG=$PKGNAME-v$PKGVER
   - git tag $TRAVIS_TAG
 deploy:
   provider: releases

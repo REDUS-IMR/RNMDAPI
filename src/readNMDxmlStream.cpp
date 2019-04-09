@@ -1,5 +1,6 @@
 #include "xmlio/xmlinput.h"
 #include "xmlio/xmlfile.h"
+#include "xmlio/xmlzipfile.h"
 #include <iostream>
 #include <cstring>
 #include <algorithm>
@@ -482,15 +483,43 @@ static void rootHandler(XML::Element &elem, void *userData)
 }
 
 
+std::string GetExt(const std::string& inputFileName)
+{
+	if(inputFileName.find_last_of(".") != std::string::npos)
+		return inputFileName.substr(inputFileName.find_last_of(".")+1);
+	return "";
+}
+
 // [[Rcpp::export]]
 Rcpp::List readNMDxmlCppStream(Rcpp::CharacterVector inputFile, Rcpp::List xsdObjects)
 {
-	// Print out XML information
-	Rcpp::Rcout << "Parsing XML: " << inputFile << std::endl;
 
-	// open input stream
-	XML::FileInputStream istream(inputFile[0]);
-	XML::Input input(istream);
+	std::string inputFileName(inputFile[0]);
+
+	XML::Input *input;
+	XML::FileInputStream *istream = NULL;
+	XML::ZipInputStream *zstream = NULL;
+
+	// Handles zip file input
+	if(inputFileName.substr(inputFileName.find_last_of(".")+1) == "zip") {
+
+		size_t basePos = inputFileName.find_last_of(".");
+		std::string xmlfile(inputFileName.substr(0, basePos) + ".xml");
+
+		Rcpp::Rcout << "Parsing XML: " << inputFileName << " inside " << inputFileName << " compressed file" << std::endl;
+
+		zstream = new XML::ZipInputStream(inputFileName.c_str(), xmlfile.c_str());
+		input = new XML::Input(*zstream);
+
+	} else {
+
+		// Print out XML information
+		Rcpp::Rcout << "Parsing XML: " << inputFileName << std::endl;
+
+		// open input stream
+		istream = new XML::FileInputStream(inputFileName.c_str());
+		input = new XML::Input(*istream);
+	}
 
 	// set up initial handler for Document
 	XML::Handler handlers[] = {
@@ -502,7 +531,7 @@ Rcpp::List readNMDxmlCppStream(Rcpp::CharacterVector inputFile, Rcpp::List xsdOb
 	returnData *data = new returnData(xsdObjects);
 
 	try {
-		input.Process(handlers, data);
+		input->Process(handlers, data);
 	}
 	catch (const XML::ParseException &e)
 	{
@@ -569,6 +598,13 @@ Rcpp::List readNMDxmlCppStream(Rcpp::CharacterVector inputFile, Rcpp::List xsdOb
 
 	// Free up memory
 	delete data;
+	delete input;
+
+	if(zstream)
+		delete zstream;
+
+	if(istream)
+		delete istream;
 
 	return rReturn;
 }
