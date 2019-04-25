@@ -34,7 +34,8 @@ before_deploy:
   - git config --global user.email "builds@travis-ci.com"
   - git config --global user.name "Travis CI"
   - export TRAVIS_TAG=$PKGNAME-v$PKGVER
-  - git tag $TRAVIS_TAG
+  - if git tag $TRAVIS_TAG > /dev/null 2>&1; then echo Successfully tagged; else echo Tag already exists; fi
+
 deploy:
   provider: releases
   api_key:

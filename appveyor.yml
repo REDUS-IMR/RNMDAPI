@@ -44,6 +44,7 @@ deploy:
   artifact: $(BIN_PKG_FILE)
   draft: false
   prerelease: false
+  force_update: true
   on:
     branch: master
 
