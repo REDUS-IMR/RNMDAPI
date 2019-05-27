@@ -43,13 +43,15 @@ readNMDxmlFile <- function(xmlFilePath, stream = FALSE) {
 		tableHeader <- tableHeaders[[x]]
 		colnames(z) <- tableHeader
 
-		# Set column types (only double and integer that is going to be use)
+		# Set column types (only double and integer for now)
 		tableType <- tableTypes[[x]]
 		if(length(tableType) > 0) {
 			for(i in 1:ncol(z)) {
 				j <- tail(unlist(strsplit(tableType[i], ":")), 1)
-				if(j %in% c("double", "integer")) {
-					doConv <- eval(parse(text = paste0("as.", j)))
+				if(j %in% c("double", "integer", "decimal")) {
+					# Map the types
+					typeMap <- c("double" = "double", "integer" = "integer", "decimal" = "double")
+					doConv <- eval(parse(text = paste0("as.", typeMap[[j]])))
 					z[, tableHeader[i] := doConv(z[[tableHeader[i]]])]
 				}
 			}
