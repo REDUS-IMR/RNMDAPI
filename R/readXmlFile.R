@@ -1,6 +1,6 @@
-#' Read NMD XML format file downloaded from IMR NMD API
+#' Read fisheries XML data format file
 #'
-#' Read NMD XML format file. Supports only Biotic version 1.4 and 3, Echosounder version 1, and Landing version 2 formats at the moment.
+#' Read fisheries XML data format file. Currently supports IMR Biotic version 1 until 3, IMR Echosounder version 1, and IMR Landing version 2 formats at the moment.
 #' Streaming XML pull parser can be used to avoid loading the whole XML into memory and it supports ZIP file reading. Please note that
 #' the XML file inside the zip file should be using the same name as the zip file itself (e.g. test.xml inside test.zip). 
 #'
@@ -12,19 +12,19 @@
 #' @examples
 #' \dontrun{
 #' # Reading test.xml using XML DOM parser
-#' one <- readNMDxmlFile("./test.xml")
+#' one <- readXmlFile("./test.xml")
 #' # Reading test.xml using XML pull parser
-#' two <- readNMDxmlFile("./test.xml", stream = TRUE)
+#' two <- readXmlFile("./test.xml", stream = TRUE)
 #' # Reading test.xml inside test.zip file
-#' three <- readNMDxmlFile("./test.zip", stream = TRUE)
+#' three <- readXmlFile("./test.zip", stream = TRUE)
 #' }
 #'
-#' @useDynLib RNMDAPI
+#' @useDynLib RstoxData
 #' @importFrom Rcpp sourceCpp
 #' @importFrom data.table as.data.table transpose
 #'
 #' @export
-readNMDxmlFile <- function(xmlFilePath, stream = FALSE) {
+readXmlFile <- function(xmlFilePath, stream = FALSE) {
 
 	# Process column names and types
 	applyNameType <- function(x, result, tableHeaders, tableTypes) {
@@ -70,9 +70,9 @@ readNMDxmlFile <- function(xmlFilePath, stream = FALSE) {
 
 	# Invoke C++ xml reading
 	if(stream) {
-		res <- readNMDxmlCppStream(xmlFilePath, xsdObjects)
+		res <- readXmlCppStream(xmlFilePath, xsdObjects)
 	} else {
-		res <- readNMDxmlCpp(xmlFilePath, xsdObjects)
+		res <- readXmlCpp(xmlFilePath, xsdObjects)
 	}
 
 	result <- res[["result"]]

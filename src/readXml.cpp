@@ -80,7 +80,7 @@ void processNode(pugi::xml_node& node, const std::vector<const char*>& parentPre
 }
 
 // [[Rcpp::export]]
-Rcpp::List readNMDxmlCpp(Rcpp::CharacterVector inputFile, Rcpp::List xsdObjects)
+Rcpp::List readXmlCpp(Rcpp::CharacterVector inputFile, Rcpp::List xsdObjects)
 {
 
 	pugi::xml_document doc;

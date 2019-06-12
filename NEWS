@@ -1,3 +1,18 @@
+RstoxData v0.6.0 (Release date: 2019-06-12)
+==============
+
+Changes:
+
+* Rebrand to RstoxData
+* Add support for all biotic formats
+
+RNMDAPI v0.5.1 (Release date: 2019-05-27)
+==============
+
+Changes:
+
+* BUG FIX: Correctly handle decimal type in the resulting tables
+
 RNMDAPI v0.5.0 (Release date: 2019-04-09)
 ==============
 
