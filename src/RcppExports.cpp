@@ -5,38 +5,38 @@
 
 using namespace Rcpp;
 
-// readNMDxmlCpp
-Rcpp::List readNMDxmlCpp(Rcpp::CharacterVector inputFile, Rcpp::List xsdObjects);
-RcppExport SEXP _RNMDAPI_readNMDxmlCpp(SEXP inputFileSEXP, SEXP xsdObjectsSEXP) {
+// readXmlCpp
+Rcpp::List readXmlCpp(Rcpp::CharacterVector inputFile, Rcpp::List xsdObjects);
+RcppExport SEXP _RstoxData_readXmlCpp(SEXP inputFileSEXP, SEXP xsdObjectsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::CharacterVector >::type inputFile(inputFileSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type xsdObjects(xsdObjectsSEXP);
-    rcpp_result_gen = Rcpp::wrap(readNMDxmlCpp(inputFile, xsdObjects));
+    rcpp_result_gen = Rcpp::wrap(readXmlCpp(inputFile, xsdObjects));
     return rcpp_result_gen;
 END_RCPP
 }
-// readNMDxmlCppStream
-Rcpp::List readNMDxmlCppStream(Rcpp::CharacterVector inputFile, Rcpp::List xsdObjects);
-RcppExport SEXP _RNMDAPI_readNMDxmlCppStream(SEXP inputFileSEXP, SEXP xsdObjectsSEXP) {
+// readXmlCppStream
+Rcpp::List readXmlCppStream(Rcpp::CharacterVector inputFile, Rcpp::List xsdObjects);
+RcppExport SEXP _RstoxData_readXmlCppStream(SEXP inputFileSEXP, SEXP xsdObjectsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::CharacterVector >::type inputFile(inputFileSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type xsdObjects(xsdObjectsSEXP);
-    rcpp_result_gen = Rcpp::wrap(readNMDxmlCppStream(inputFile, xsdObjects));
+    rcpp_result_gen = Rcpp::wrap(readXmlCppStream(inputFile, xsdObjects));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_RNMDAPI_readNMDxmlCpp", (DL_FUNC) &_RNMDAPI_readNMDxmlCpp, 2},
-    {"_RNMDAPI_readNMDxmlCppStream", (DL_FUNC) &_RNMDAPI_readNMDxmlCppStream, 2},
+    {"_RstoxData_readXmlCpp", (DL_FUNC) &_RstoxData_readXmlCpp, 2},
+    {"_RstoxData_readXmlCppStream", (DL_FUNC) &_RstoxData_readXmlCppStream, 2},
     {NULL, NULL, 0}
 };
 
-RcppExport void R_init_RNMDAPI(DllInfo *dll) {
+RcppExport void R_init_RstoxData(DllInfo *dll) {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
 }

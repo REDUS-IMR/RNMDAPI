@@ -491,7 +491,7 @@ std::string GetExt(const std::string& inputFileName)
 }
 
 // [[Rcpp::export]]
-Rcpp::List readNMDxmlCppStream(Rcpp::CharacterVector inputFile, Rcpp::List xsdObjects)
+Rcpp::List readXmlCppStream(Rcpp::CharacterVector inputFile, Rcpp::List xsdObjects)
 {
 
 	std::string inputFileName(inputFile[0]);
