@@ -40,7 +40,7 @@ deploy:
   description: ''
   provider: GitHub
   auth_token:
-    secure: GEXbXTe8GZsRvQ5m3UMYpB3soyUgLhlEEOPeg/CiFNYfYH2SlNWIz+9FsJo8jyo3
+    secure: 1BrsGiqI0hK/nqDJHPXRJbTGoaQ0pIhJ70mspFSKBlYhTyss/FagjPzLkRR7uLTq
   artifact: $(BIN_PKG_FILE)
   draft: false
   prerelease: false
