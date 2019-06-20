@@ -105,10 +105,11 @@ private:
 	char* xsdUsed;
 	std::map<std::string, std::list<std::vector<std::string>* >* >* ret;
 	const Rcpp::List *xsdObjects;
+	const char* xsdOverride;
 
 public:
-	returnData(Rcpp::List& a) :
-		xsdObjects(&a)
+	returnData(Rcpp::List& a, char* b) :
+		xsdObjects(&a), xsdOverride(b)
 	{}
 
 	~returnData()
@@ -118,6 +119,10 @@ public:
 	const Rcpp::List *getXsdObjects()
 	{
 		return xsdObjects;
+	}
+	const char* getXsdOverride()
+	{
+		return xsdOverride;
 	}
 	void setXsdUsed(char* input)
 	{
@@ -299,6 +304,7 @@ static void rootHandler(XML::Element &elem, void *userData)
 	returnData *data = (returnData *) userData;
 
 	const Rcpp::List *xsdObjects = data->getXsdObjects();
+	const char* xsdOverride = data->getXsdOverride();
 
 	const char* root = elem.GetName();
 	char* xmlns = NULL;
@@ -326,7 +332,15 @@ static void rootHandler(XML::Element &elem, void *userData)
 			}
 			a = a.GetNext();
 		}
-	} else {
+	} 
+
+	// If there is a user supplied xsd namespace
+	if (xsdOverride != NULL) {
+		xmlns = strdup(xsdOverride);
+	}
+
+	if (xmlns == NULL)
+	{
 		Rcpp::stop("Can not find the XML namespace, exiting...\n");
 	}
 
@@ -340,20 +354,25 @@ static void rootHandler(XML::Element &elem, void *userData)
 		ns = NULL;
 	}
 
-	// Process namespace to get the correct XSD data
-	char *token = std::strtok(xmlns, "/");
-
-	char *one = NULL;
-	char *two = token;
-
-	while (token) {
-		one = two;
-		two = token;
-		token = strtok(NULL, "/");
-	}
-
 	char xsd[50];
-	sprintf (xsd, "%s%s.xsd", one, two);
+
+	// If there is a user supplied xsd namespace
+	if (xsdOverride != NULL) {
+		sprintf (xsd, "%s.xsd", xmlns);
+	} else {
+		// Process namespace to get the correct XSD data
+		char *token = std::strtok(xmlns, "/");
+
+		char *one = NULL;
+		char *two = token;
+
+		while (token) {
+			one = two;
+			two = token;
+			token = strtok(NULL, "/");
+		}
+		sprintf (xsd, "%s%s.xsd", one, two);
+	}
 
 	Rcpp::Rcout << "Using XSD: " << xsd << std::endl;
 
@@ -491,7 +510,7 @@ std::string GetExt(const std::string& inputFileName)
 }
 
 // [[Rcpp::export]]
-Rcpp::List readXmlCppStream(Rcpp::CharacterVector inputFile, Rcpp::List xsdObjects)
+Rcpp::List readXmlCppStream(Rcpp::CharacterVector inputFile, Rcpp::List xsdObjects, Rcpp::Nullable<std::string> xsdOverride = R_NilValue)
 {
 
 	std::string inputFileName(inputFile[0]);
@@ -528,7 +547,23 @@ Rcpp::List readXmlCppStream(Rcpp::CharacterVector inputFile, Rcpp::List xsdObjec
 	};
 
 	// Prepare return data class
-	returnData *data = new returnData(xsdObjects);
+	returnData *data;
+
+#ifdef DEBUG
+	Rcpp::Rcout << "Init Data" << std::endl;
+#endif
+
+	// If there is a user supplied xsd namespace
+	if (xsdOverride.isNotNull()) {
+		data = new returnData(xsdObjects, Rcpp::as<Rcpp::CharacterVector>(xsdOverride)[0]);
+	} else {
+		data = new returnData(xsdObjects, NULL);
+	}
+
+
+#ifdef DEBUG
+	Rcpp::Rcout << "Start Process" << std::endl;
+#endif
 
 	try {
 		input->Process(handlers, data);

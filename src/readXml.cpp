@@ -80,7 +80,7 @@ void processNode(pugi::xml_node& node, const std::vector<const char*>& parentPre
 }
 
 // [[Rcpp::export]]
-Rcpp::List readXmlCpp(Rcpp::CharacterVector inputFile, Rcpp::List xsdObjects)
+Rcpp::List readXmlCpp(Rcpp::CharacterVector inputFile, Rcpp::List xsdObjects, Rcpp::Nullable<Rcpp::CharacterVector> xsdOverride = R_NilValue)
 {
 
 	pugi::xml_document doc;
@@ -123,10 +123,14 @@ Rcpp::List readXmlCpp(Rcpp::CharacterVector inputFile, Rcpp::List xsdObjects)
 		}
 	}
 
+	// If there is a user supplied xsd namespace
+	if (xsdOverride.isNotNull()) {
+		xmlns = Rcpp::as<Rcpp::CharacterVector>(xsdOverride)[0];
+	}
+
 	if (xmlns == NULL) {
 		Rcpp::stop("Can not find the XML namespace, exiting...\n");
 	}
-
 
 	Rcpp::Rcout << "Root: " <<  doc.first_child().name() << "\n";
 	Rcpp::Rcout << "XML namespace: " << xmlns << "\n";
@@ -137,23 +141,32 @@ Rcpp::List readXmlCpp(Rcpp::CharacterVector inputFile, Rcpp::List xsdObjects)
 		ns = NULL;
 	}
 
-	// Process namespace to get the correct XSD data
-	char *token = std::strtok(xmlns, "/");
-
-	char *one = NULL;
-	char *two = token;
-
-	while (token) {
-		one = two;
-		two = token;
-		token = strtok(NULL, "/");
-	}
-
 	char xsd[50];
-	sprintf (xsd, "%s%s.xsd", one, two);
+	
+	// If there is a user supplied xsd namespace
+	if (xsdOverride.isNotNull()) {
+		sprintf (xsd, "%s.xsd", xmlns);
+	} else {
+		// Process namespace to get the correct XSD data
+		char *token = std::strtok(xmlns, "/");
 
+		char *one = NULL;
+		char *two = token;
+
+		while (token) {
+			one = two;
+			two = token;
+			token = strtok(NULL, "/");
+		}
+
+		sprintf (xsd, "%s%s.xsd", one, two);
+	}
 	// Print out XML information
 	Rcpp::Rcout << "Using XSD: " << xsd << std::endl;
+
+#ifdef DEBUG
+	Rcpp::Rcout << "Getting XSD objects" << std::endl;
+#endif
 
 	// Get XSD object
 	Rcpp::CharacterVector root = Rcpp::as<Rcpp::List>(xsdObjects[xsd])["root"];
@@ -162,6 +175,9 @@ Rcpp::List readXmlCpp(Rcpp::CharacterVector inputFile, Rcpp::List xsdObjects)
 	Rcpp::NumericVector prefixLens = Rcpp::as<Rcpp::List>(xsdObjects[xsd])["prefixLens"];
 	Rcpp::CharacterVector levelDims = Rcpp::as<Rcpp::List>(xsdObjects[xsd])["levelDims"];
 
+#ifdef DEBUG
+	Rcpp::Rcout << "Convert headers to C++" << std::endl;
+#endif
 
 	// convert R headers to std c++
 	std::vector<std::string>  tableNamesCpp;

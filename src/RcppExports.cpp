@@ -6,33 +6,35 @@
 using namespace Rcpp;
 
 // readXmlCpp
-Rcpp::List readXmlCpp(Rcpp::CharacterVector inputFile, Rcpp::List xsdObjects);
-RcppExport SEXP _RstoxData_readXmlCpp(SEXP inputFileSEXP, SEXP xsdObjectsSEXP) {
+Rcpp::List readXmlCpp(Rcpp::CharacterVector inputFile, Rcpp::List xsdObjects, Rcpp::Nullable<Rcpp::CharacterVector> xsdOverride);
+RcppExport SEXP _RstoxData_readXmlCpp(SEXP inputFileSEXP, SEXP xsdObjectsSEXP, SEXP xsdOverrideSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::CharacterVector >::type inputFile(inputFileSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type xsdObjects(xsdObjectsSEXP);
-    rcpp_result_gen = Rcpp::wrap(readXmlCpp(inputFile, xsdObjects));
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::CharacterVector> >::type xsdOverride(xsdOverrideSEXP);
+    rcpp_result_gen = Rcpp::wrap(readXmlCpp(inputFile, xsdObjects, xsdOverride));
     return rcpp_result_gen;
 END_RCPP
 }
 // readXmlCppStream
-Rcpp::List readXmlCppStream(Rcpp::CharacterVector inputFile, Rcpp::List xsdObjects);
-RcppExport SEXP _RstoxData_readXmlCppStream(SEXP inputFileSEXP, SEXP xsdObjectsSEXP) {
+Rcpp::List readXmlCppStream(Rcpp::CharacterVector inputFile, Rcpp::List xsdObjects, Rcpp::Nullable<std::string> xsdOverride);
+RcppExport SEXP _RstoxData_readXmlCppStream(SEXP inputFileSEXP, SEXP xsdObjectsSEXP, SEXP xsdOverrideSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::CharacterVector >::type inputFile(inputFileSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type xsdObjects(xsdObjectsSEXP);
-    rcpp_result_gen = Rcpp::wrap(readXmlCppStream(inputFile, xsdObjects));
+    Rcpp::traits::input_parameter< Rcpp::Nullable<std::string> >::type xsdOverride(xsdOverrideSEXP);
+    rcpp_result_gen = Rcpp::wrap(readXmlCppStream(inputFile, xsdObjects, xsdOverride));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_RstoxData_readXmlCpp", (DL_FUNC) &_RstoxData_readXmlCpp, 2},
-    {"_RstoxData_readXmlCppStream", (DL_FUNC) &_RstoxData_readXmlCppStream, 2},
+    {"_RstoxData_readXmlCpp", (DL_FUNC) &_RstoxData_readXmlCpp, 3},
+    {"_RstoxData_readXmlCppStream", (DL_FUNC) &_RstoxData_readXmlCppStream, 3},
     {NULL, NULL, 0}
 };
 
