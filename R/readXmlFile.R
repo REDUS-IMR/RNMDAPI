@@ -6,6 +6,7 @@
 #'
 #' @param xmlFilePath full path to the XML file to be read.
 #' @param stream a streaming XML pull parser is used if this is set to TRUE. An XML DOM parser is used if this is set to FALSE. Default to FALSE.
+#' @param useXsd Specify an xsd object to use. Default to NULL.
 #'
 #' @return List of data.table objects containing the "flattened" XML data.
 #'
@@ -24,7 +25,7 @@
 #' @importFrom data.table as.data.table transpose
 #'
 #' @export
-readXmlFile <- function(xmlFilePath, stream = FALSE) {
+readXmlFile <- function(xmlFilePath, stream = FALSE, useXsd = NULL) {
 
 	# Process column names and types
 	applyNameType <- function(x, result, tableHeaders, tableTypes) {
@@ -70,9 +71,9 @@ readXmlFile <- function(xmlFilePath, stream = FALSE) {
 
 	# Invoke C++ xml reading
 	if(stream) {
-		res <- readXmlCppStream(xmlFilePath, xsdObjects)
+		res <- readXmlCppStream(xmlFilePath, xsdObjects, useXsd)
 	} else {
-		res <- readXmlCpp(xmlFilePath, xsdObjects)
+		res <- readXmlCpp(xmlFilePath, xsdObjects, useXsd)
 	}
 
 	result <- res[["result"]]

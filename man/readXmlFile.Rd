@@ -2,20 +2,22 @@
 % Please edit documentation in R/readXmlFile.R
 \name{readXmlFile}
 \alias{readXmlFile}
-\title{Read NMD XML format file downloaded from IMR NMD API}
+\title{Read fisheries XML data format file}
 \usage{
-readXmlFile(xmlFilePath, stream = FALSE)
+readXmlFile(xmlFilePath, stream = FALSE, useXsd = NULL)
 }
 \arguments{
 \item{xmlFilePath}{full path to the XML file to be read.}
 
 \item{stream}{a streaming XML pull parser is used if this is set to TRUE. An XML DOM parser is used if this is set to FALSE. Default to FALSE.}
+
+\item{useXsd}{Specify an xsd object to use. Default to NULL.}
 }
 \value{
 List of data.table objects containing the "flattened" XML data.
 }
 \description{
-Read NMD XML format file. Supports only Biotic version 1.4 and 3, Echosounder version 1, and Landing version 2 formats at the moment.
+Read fisheries XML data format file. Currently supports IMR Biotic version 1 until 3, IMR Echosounder version 1, and IMR Landing version 2 formats at the moment.
 Streaming XML pull parser can be used to avoid loading the whole XML into memory and it supports ZIP file reading. Please note that
 the XML file inside the zip file should be using the same name as the zip file itself (e.g. test.xml inside test.zip).
 }
