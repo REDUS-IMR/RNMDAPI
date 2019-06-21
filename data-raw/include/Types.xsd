@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <!--Type-->
+  <xsd:simpleType name="ISO8601DateType">
+    <xsd:restriction base="xsd:string">
+      <xsd:pattern value="([0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="ISO8601DateFullTimeType">
+    <xsd:restriction base="xsd:string">
+      <xsd:pattern value="([0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])[ T](2[0-3]|[01][0-9]):([0-5][0-9])(:([0-5][0-9](.[0-9]{1,3})?))?"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="string6">
+    <xsd:restriction base="xsd:string">
+      <xsd:maxLength value="6" />
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="string4">
+    <xsd:restriction base="xsd:string">
+      <xsd:maxLength value="4" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  
+  <xsd:simpleType name="nonEmptyString">
+    <xsd:restriction base="string">
+      <xsd:pattern value="(\s*[^\s]\s*)+"></xsd:pattern>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="float">
+    <xsd:restriction base="xsd:float">
+      <xsd:pattern value="(?!-9$)((\+|-)?([0-9]+(\.[0-9]*)?|\.[0-9]+)([Ee](\+|-)?[0-9]+)?|(\+|-)?)"></xsd:pattern>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="int">
+    <xsd:restriction base="xsd:int">
+      <xsd:pattern value="(?!-9$)(-?[\d]*)"></xsd:pattern>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="string">
+    <xsd:restriction base="xsd:string">
+      <xsd:pattern value="(?!-9$)^[^,]*"></xsd:pattern>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+
+  <!--Ref-->
+  <xsd:complexType name="IDREFType">
+    <xsd:attribute name="IDREF" type="xsd:IDREF"/>
+  </xsd:complexType>
+  
+</xsd:schema>
+
+

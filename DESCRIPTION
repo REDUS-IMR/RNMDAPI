@@ -1,7 +1,7 @@
 Package: RstoxData
 Type: Package
 Title: R libraries to parse and write fisheries biotic and acoustic data format
-Version: 0.6.0
+Version: 0.6.1
 Date: 2019-06-12
 Author: Ibrahim Umar
 Maintainer: Ibrahim Umar <ibrahim.umar@hi.no>

@@ -1,0 +1,441 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:include schemaLocation="Types.xsd"/>
+  <xsd:include schemaLocation="Cruise.xsd"/>
+  <xsd:element name="Acoustic" type="Acoustic"/>
+
+  <!--Acoustic-->
+  <xsd:complexType name="Acoustic">
+    <xsd:sequence>
+      <xsd:element name="Instrument" type="Instrument" minOccurs="1" maxOccurs="unbounded"/>
+      <xsd:element name="Calibration" type="Calibration" minOccurs="1" maxOccurs="unbounded"/>
+      <xsd:element name="DataAcquisition" type="DataAcquisition" minOccurs="1" maxOccurs="unbounded"/>
+      <xsd:element name="DataProcessing" type="DataProcessing" minOccurs="1" maxOccurs="unbounded"/>
+      <xsd:element name="Vocabulary" type="AcousticVocabulary" maxOccurs="1"/>
+      <xsd:element name="Cruise" type="AcousticCruise" minOccurs="1" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="AcousticVocabulary">
+    <xsd:all>
+      <xsd:element name="Survey" type="Survey" maxOccurs="1"/>
+      <xsd:element name="Country" type="Country" maxOccurs="1"/>
+      <xsd:element name="Platform" type="Platform" maxOccurs="1"/>
+      <xsd:element name="Organisation" type="Organisation" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="Origin" type="Origin" maxOccurs="1"/>
+      <xsd:element name="LogValidity" type="LogValidity" maxOccurs="1"/>
+      <xsd:element name="SaCategory" type="SaCategory"  maxOccurs="1"/>
+      <xsd:element name="Type" type="Type" maxOccurs="1"/>
+      <xsd:element name="Unit" type="Unit" maxOccurs="1"/>
+      <xsd:element name="PingAxisIntervalType" type="PingAxisIntervalType" maxOccurs="1"/>
+      <xsd:element name="PingAxisIntervalUnit" type="PingAxisIntervalUnit" maxOccurs="1"/>
+      <xsd:element name="PingAxisIntervalOrigin" type="PingAxisIntervalOrigin" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="TransducerLocation" type="TransducerLocation" maxOccurs="1"/>
+      <xsd:element name="TransducerBeamType" type="TransducerBeamType" maxOccurs="1"/>
+      <xsd:element name="AcquisitionMethod" type="AcquisitionMethod" maxOccurs="1"/>
+      <xsd:element name="ProcessingMethod" type="ProcessingMethod" maxOccurs="1"/>
+      <xsd:element name="DataAcquisitionSoftwareName" type="DataAcquisitionSoftwareName" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="StoredDataFormat" type="StoredDataFormat" maxOccurs="1"/>
+      <xsd:element name="DataProcessingSoftwareName" type="DataProcessingSoftwareName" maxOccurs="1"/>
+      <xsd:element name="TriwaveCorrection" type="TriwaveCorrection" maxOccurs="1"/>
+      <xsd:element name="OnAxisGainUnit" type="OnAxisGainUnit" maxOccurs="1"/>
+    </xsd:all>
+  </xsd:complexType>
+
+
+  <!--Cruise-->
+  <xsd:complexType name="AcousticCruise">
+    <xsd:complexContent>
+      <xsd:extension base="Cruise">
+        <xsd:sequence>
+          <xsd:element name="Log" type="Log" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+
+  <!--Log-->
+  <xsd:complexType name="Log">
+    <xsd:sequence>
+      <xsd:element name="Distance" type="float" />
+      <xsd:element name="Time" type="ISO8601DateFullTimeType" />
+      <xsd:element name="Latitude" type="float"/>
+      <xsd:element name="Longitude" type="float" />
+      <xsd:element name="Origin" type="IDREFType" />
+      <xsd:element name="Validity" type="IDREFType"/>
+      <xsd:element name="BottomDepth"  type="float" minOccurs="0" nillable="true"/>
+      <xsd:element name="Sample" type="Sample" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+ 
+  <!--Vocabulary-->
+  <xsd:complexType name="Origin">
+    <xsd:sequence>
+      <xsd:element name="Code" type="OriginVocabulary" minOccurs="1" maxOccurs="unbounded" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="OriginVocabulary">
+    <xsd:simpleContent>
+      <xsd:extension base="string">
+        <xsd:attribute name="ID" type="xsd:ID" use="required"/>
+        <xsd:attribute name="CodeType" type="nonEmptyString" use="required" fixed="https://acoustic.ices.dk/Services/Schema/XML/AC_LogOrigin.xml"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="LogValidity">
+    <xsd:sequence>
+      <xsd:element name="Code" type="LogValidityVocabulary" minOccurs="1" maxOccurs="unbounded" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="LogValidityVocabulary">
+    <xsd:simpleContent>
+      <xsd:extension base="string">
+        <xsd:attribute name="ID" type="xsd:ID" use="required"/>
+        <xsd:attribute name="CodeType" type="nonEmptyString" use="required" fixed="https://acoustic.ices.dk/Services/Schema/XML/AC_LogValidity.xml"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  
+  <!--Sample-->
+  <xsd:complexType name="Sample">
+    <xsd:sequence>
+      <xsd:element name="ChannelDepthUpper" type="float" />
+      <xsd:element name="ChannelDepthLower" type="float" />
+      <xsd:element name="PingAxisInterval" type="float" />
+      <xsd:element name="PingAxisIntervalType" type="IDREFType" />
+      <xsd:element name="PingAxisIntervalUnit" type="IDREFType" />
+      <xsd:element name="SvThreshold" type="float" />
+      <xsd:element name="Instrument" type="IDREFType"/>
+      <xsd:element name="Calibration" type="IDREFType"/>
+      <xsd:element name="DataAcquisition" type="IDREFType"/>
+      <xsd:element name="DataProcessing" type="IDREFType"/>
+      <xsd:element name="PingAxisIntervalOrigin" type="IDREFType" minOccurs="0" nillable="true"/>
+      <xsd:element name="Data" type="Data" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <!--Vocabulary-->
+  <xsd:complexType name="PingAxisIntervalType">
+    <xsd:sequence>
+      <xsd:element name="Code" type="PingAxisIntervalTypeVocabulary" minOccurs="1" maxOccurs="unbounded" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="PingAxisIntervalUnit">
+    <xsd:sequence>
+      <xsd:element name="Code" type="PingAxisIntervalUnitVocabulary" minOccurs="1" maxOccurs="unbounded" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="PingAxisIntervalOrigin">
+    <xsd:sequence>
+      <xsd:element name="Code" type="PingAxisIntervalOriginVocabulary" minOccurs="0" maxOccurs="unbounded" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <!--Sample Vocabularies-->
+  <xsd:complexType name="PingAxisIntervalOriginVocabulary">
+    <xsd:simpleContent>
+      <xsd:extension base="string">
+        <xsd:attribute name="ID" type="xsd:ID" use="required"/>
+        <xsd:attribute name="CodeType" type="nonEmptyString" use="required"   fixed="https://acoustic.ices.dk/Services/Schema/XML/AC_PingAxisIntervalOrigin.xml"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="PingAxisIntervalTypeVocabulary">
+    <xsd:simpleContent>
+      <xsd:extension base="string">
+        <xsd:attribute name="ID" type="xsd:ID" use="required"/>
+        <xsd:attribute name="CodeType" type="nonEmptyString" use="required"   fixed="https://acoustic.ices.dk/Services/Schema/XML/AC_PingAxisIntervalType.xml"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="PingAxisIntervalUnitVocabulary">
+    <xsd:simpleContent>
+      <xsd:extension base="string">
+        <xsd:attribute name="ID" type="xsd:ID" use="required"/>
+        <xsd:attribute name="CodeType" type="nonEmptyString" use="required"   fixed="https://acoustic.ices.dk/Services/Schema/XML/AC_PingAxisIntervalUnit.xml"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+
+
+  <!--Data-->
+  <xsd:complexType name="Data">
+    <xsd:sequence>
+      <xsd:element name="SaCategory" type="IDREFType" />
+      <xsd:element name="Type" type="IDREFType" />
+      <xsd:element name="Unit" type="IDREFType" />
+      <xsd:element name="Value" type="float" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <!--Vocabulary-->
+  <xsd:complexType name="SaCategory">
+    <xsd:sequence>
+      <xsd:element name="Code" type="SaCategoryVocabulary" minOccurs="1" maxOccurs="unbounded" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="Type">
+    <xsd:sequence>
+      <xsd:element name="Code" type="TypeVocabulary" minOccurs="1" maxOccurs="unbounded" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="Unit">
+    <xsd:sequence>
+      <xsd:element name="Code" type="UnitVocabulary" minOccurs="1" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <!--Data Vocabularies-->
+  <xsd:complexType name="UnitVocabulary">
+    <xsd:simpleContent>
+      <xsd:extension base="string">
+        <xsd:attribute name="ID" type="xsd:ID" use="required"/>
+        <xsd:attribute name="CodeType" type="nonEmptyString" use="required"   fixed="https://acoustic.ices.dk/Services/Schema/XML/AC_DataUnit.xml"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="TypeVocabulary">
+    <xsd:simpleContent>
+      <xsd:extension base="string">
+        <xsd:attribute name="ID" type="xsd:ID" use="required"/>
+        <xsd:attribute name="CodeType" type="nonEmptyString" use="required"   fixed="https://acoustic.ices.dk/Services/Schema/XML/AC_AcousticDataType.xml"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="SaCategoryVocabulary">
+    <xsd:simpleContent>
+      <xsd:extension base="string">
+        <xsd:attribute name="ID" type="xsd:ID" use="required"/>
+        <xsd:attribute name="CodeType" type="nonEmptyString" use="required"   fixed="https://acoustic.ices.dk/Services/Schema/XML/AC_SaCategory.xml"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+
+  <!--Instrument-->
+  <xsd:complexType name="Instrument">
+    <xsd:sequence>
+      <xsd:element name="Frequency" type="float" />
+      <xsd:element name="TransducerLocation" type="IDREFType" />
+      <xsd:element name="TransducerManufacturer" type="string" minOccurs="0" nillable="true"/>
+      <xsd:element name="TransducerModel" type="string" minOccurs="0" nillable="true"/>
+      <xsd:element name="TransducerSerial" type="string" minOccurs="0" nillable="true"/>
+      <xsd:element name="TransducerBeamType" type="IDREFType" />
+      <xsd:element name="TransducerDepth" type="float" minOccurs="0" nillable="true"/>
+      <xsd:element name="TransducerOrientation" type="nonEmptyString" />
+      <xsd:element name="TransducerPSI" type="float" minOccurs="0" nillable="true"/>
+      <xsd:element name="TransducerBeamAngleMajor" type="float" minOccurs="0" nillable="true"/>
+      <xsd:element name="TransducerBeamAngleMinor" type="float" minOccurs="0" nillable="true"/>
+      <xsd:element name="TransceiverManufacturer" type="string" minOccurs="0" nillable="true"/>
+      <xsd:element name="TransceiverModel" type="string" minOccurs="0" nillable="true"/>
+      <xsd:element name="TransceiverSerial" type="string" minOccurs="0" nillable="true"/>
+      <xsd:element name="TransceiverFirmware" type="string" minOccurs="0" nillable="true"/>
+      <xsd:element name="Comments" type="string" minOccurs="0" nillable="true"/>
+    </xsd:sequence>
+    <xsd:attribute name="ID" type="xsd:ID" use="required"/>
+  </xsd:complexType>
+
+  <xsd:complexType name="TransducerLocation">
+    <xsd:sequence>
+      <xsd:element name="Code" type="TransducerLocationVocabulary" minOccurs="1" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="TransducerBeamType">
+    <xsd:sequence>
+      <xsd:element name="Code" type="TransducerBeamTypeVocabulary" minOccurs="1" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  
+  <!--Instrument Vocabularies-->
+  <xsd:complexType name="TransducerLocationVocabulary">
+    <xsd:simpleContent>
+      <xsd:extension base="string">
+        <xsd:attribute name="ID" type="xsd:ID" use="required"/>
+        <xsd:attribute name="CodeType" type="nonEmptyString" use="required"   fixed="https://acoustic.ices.dk/Services/Schema/XML/AC_TransducerLocation.xml"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="TransducerBeamTypeVocabulary">
+    <xsd:simpleContent>
+      <xsd:extension base="string">
+        <xsd:attribute name="ID" type="xsd:ID" use="required"/>
+        <xsd:attribute name="CodeType" type="nonEmptyString" use="required"   fixed="https://acoustic.ices.dk/Services/Schema/XML/AC_TransducerBeamType.xml"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  
+
+  <!--Calibration-->
+  <xsd:complexType name="Calibration">
+    <xsd:sequence>
+      <xsd:element name="Date" type="ISO8601DateType" />
+      <xsd:element name="AcquisitionMethod" type="IDREFType" />
+      <xsd:element name="ProcessingMethod" type="IDREFType" />
+      <xsd:element name="AccuracyEstimate" type="nonEmptyString" />
+      <xsd:element name="Report" type="string" minOccurs="0" nillable="true"/>
+      <xsd:element name="Comments" type="string" minOccurs="0" nillable="true"/>
+    </xsd:sequence>
+    <xsd:attribute name="ID" type="xsd:ID" use="required"/>
+  </xsd:complexType>
+
+  <xsd:complexType name="AcquisitionMethod">
+    <xsd:sequence>
+      <xsd:element name="Code" type="AcquisitionMethodVocabulary" minOccurs="1" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="ProcessingMethod">
+    <xsd:sequence>
+      <xsd:element name="Code" type="ProcessingMethodVocabulary" minOccurs="1" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <!--Calibration Vocabularies-->
+  <xsd:complexType name="AcquisitionMethodVocabulary">
+    <xsd:simpleContent>
+      <xsd:extension base="string">
+        <xsd:attribute name="ID" type="xsd:ID" use="required"/>
+        <xsd:attribute name="CodeType" type="nonEmptyString" use="required"   fixed="https://acoustic.ices.dk/Services/Schema/XML/AC_AcquisitionMethod.xml"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="ProcessingMethodVocabulary">
+    <xsd:simpleContent>
+      <xsd:extension base="string">
+        <xsd:attribute name="ID" type="xsd:ID" use="required"/>
+        <xsd:attribute name="CodeType" type="nonEmptyString" use="required"   fixed="https://acoustic.ices.dk/Services/Schema/XML/AC_ProcessingMethod.xml"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+
+  <!--Data Acquisition-->
+  <xsd:complexType name="DataAcquisition">
+    <xsd:sequence>
+      <xsd:element name="SoftwareName" type="IDREFType" minOccurs="0" nillable="true"/>
+      <xsd:element name="SoftwareVersion" type="string" minOccurs="0" nillable="true"/>
+      <xsd:element name="StoredDataFormat" type="IDREFType" />
+      <xsd:element name="PingDutyCycle" type="nonEmptyString"  />
+      <xsd:element name="Comments" type="string" minOccurs="0" nillable="true"/>
+    </xsd:sequence>
+    <xsd:attribute name="ID" type="xsd:ID" use="required"/>
+  </xsd:complexType>
+
+  <xsd:complexType name="DataAcquisitionSoftwareName">
+    <xsd:sequence>
+      <xsd:element name="Code" type="DataAcquisitionSoftwareNameVocabulary" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="StoredDataFormat">
+    <xsd:sequence>
+      <xsd:element name="Code" type="StoredDataFormatVocabulary" minOccurs="1" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <!--Data Acquisition Vocabularies-->
+  <xsd:complexType name="DataAcquisitionSoftwareNameVocabulary">
+    <xsd:simpleContent>
+      <xsd:extension base="string">
+        <xsd:attribute name="ID" type="xsd:ID" use="required"/>
+        <xsd:attribute name="CodeType" type="nonEmptyString" use="required"   fixed="https://acoustic.ices.dk/Services/Schema/XML/AC_DataAcquisitionSoftwareName.xml"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="StoredDataFormatVocabulary">
+    <xsd:simpleContent>
+      <xsd:extension base="string">
+        <xsd:attribute name="ID" type="xsd:ID" use="required"/>
+        <xsd:attribute name="CodeType" type="nonEmptyString" use="required"   fixed="https://acoustic.ices.dk/Services/Schema/XML/AC_StoredDataFormat.xml"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+
+
+  <!--Data Processing-->
+  <xsd:complexType name="DataProcessing">
+    <xsd:sequence>
+      <xsd:element name="SoftwareName" type="IDREFType"/>
+      <xsd:element name="SoftwareVersion" type="nonEmptyString"/>
+      <xsd:element name="TriwaveCorrection"  type="IDREFType"/>
+      <xsd:element name="ChannelID" type="string" minOccurs="0" nillable="true"/>
+      <xsd:element name="Bandwidth" type="float" minOccurs="0" nillable="true"/>
+      <xsd:element name="Frequency" type="float"/>
+      <xsd:element name="TransceiverPower" type="float"/>
+      <xsd:element name="TransmitPulseLength" type="float"/>
+      <xsd:element name="OnAxisGain" type="float"/>
+      <xsd:element name="OnAxisGainUnit" type="IDREFType"/>
+      <xsd:element name="SaCorrection" type="float" minOccurs="0" nillable="true"/>
+      <xsd:element name="Absorption" type="float" minOccurs="0" nillable="true"/>
+      <xsd:element name="AbsorptionDescription" type="string" minOccurs="0" nillable="true"/>
+      <xsd:element name="SoundSpeed" type="float" minOccurs="0" nillable="true"/>
+      <xsd:element name="SoundSpeedDescription" type="string" minOccurs="0" nillable="true"/>
+      <xsd:element name="TransducerPSI" type="float"/>
+      <xsd:element name="Comments" type="string" minOccurs="0" nillable="true"/>
+    </xsd:sequence>
+    <xsd:attribute name="ID" type="xsd:ID" use="required"/>
+  </xsd:complexType>
+ 
+  <xsd:complexType name="DataProcessingSoftwareName">
+    <xsd:sequence>
+      <xsd:element name="Code" type="DataProcessingSoftwareNameVocabulary" minOccurs="1" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="TriwaveCorrection">
+    <xsd:sequence>
+      <xsd:element name="Code" type="TriwaveCorrectionVocabulary" minOccurs="1" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="OnAxisGainUnit">
+    <xsd:sequence>
+      <xsd:element name="Code" type="OnAxisGainUnitVocabulary" minOccurs="1" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+
+  <!--Data Processing Vocabularies-->
+  <xsd:complexType name="DataProcessingSoftwareNameVocabulary">
+    <xsd:simpleContent>
+      <xsd:extension base="string">
+        <xsd:attribute name="ID" type="xsd:ID" use="required"/>
+        <xsd:attribute name="CodeType" type="nonEmptyString" use="required"   fixed="https://acoustic.ices.dk/Services/Schema/XML/AC_DataProcessingSoftwareName.xml"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  
+  <xsd:complexType name="TriwaveCorrectionVocabulary">
+    <xsd:simpleContent>
+      <xsd:extension base="string">
+        <xsd:attribute name="ID" type="xsd:ID" use="required"/>
+        <xsd:attribute name="CodeType" type="nonEmptyString" use="required"   fixed="https://acoustic.ices.dk/Services/Schema/XML/AC_TriwaveCorrection.xml"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="OnAxisGainUnitVocabulary">
+    <xsd:simpleContent>
+      <xsd:extension base="string">
+       <xsd:attribute name="ID" type="xsd:ID" use="required"/>
+         <xsd:attribute name="CodeType" type="nonEmptyString" use="required"   fixed="https://acoustic.ices.dk/Services/Schema/XML/AC_OnAxisGainUnit.xml"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+
+
+</xsd:schema>

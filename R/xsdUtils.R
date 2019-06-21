@@ -1,4 +1,4 @@
-processXSD <- function(doc) {
+processXSD <- function(doc, path = NULL) {
 
 	getNameType <- function(x) {
 		y <- xml_attrs(x)
@@ -20,21 +20,29 @@ processXSD <- function(doc) {
 
 		# Clean sName
 		sName <- gsub(paste0(rootName, ":"), "", sName)
-		
+
 		# Extract elements
-		y <- xml_find_all(doc, paste0("//xs:complexType[@name=\"", sName, "\"]//xs:element"))
+		y <- xml_find_all(doc, paste0("//", defNS, "complexType[@name=\"", sName, "\"]//", defNS, "element"))
 
 		# This is needed for echosounder v1 SA records
-		extension <- xml_find_all(doc, paste0("//xs:complexType[@name=\"", sName, "\"]//xs:extension"))
+		extension <- xml_find_all(doc, paste0("//", defNS, "complexType[@name=\"", sName, "\"]//", defNS, "extension"))
 
+		# If no children and "KeyType" (This might be specific to Biotic) or "*IDREFType*" (specific to ICES XSDs)
+		if(length(y) > 0 && (!grepl("KeyType", sName) || !grepl("IDREFType", sName))) {
 
-		# If no children and "KeyType" (This might be specific to Biotic)
-		if(length(y) > 0 && !grepl("KeyType", sName)) {
+			if(grepl("IDREFType", sName)) print("IDREFType\n")
+
 			z <- lapply(lapply(y, getNameType), getRecNameType, rootName)
+
+			# ICES data have extension and children
+			if(length(extension) > 0) {
+				ext <- lapply(lapply(extension, getNameTypeExt, x[1]), getRecNameType, rootName)
+				z <- c(z, ext[[1]]$members)
+			}
 
 			# Prepare flat
 			flat[[x[1]]] <<- z
-			flatAttr[[x[1]]] <<- sapply(xml_find_all(doc, paste0("//xs:complexType[@name=\"", sName, "\"]//xs:attribute/@name")), function(xx) xml_text(xx))
+			flatAttr[[x[1]]] <<- sapply(xml_find_all(doc, paste0("//", defNS, "complexType[@name=\"", sName, "\"]//", defNS, "attribute/@name")), function(xx) xml_text(xx))
 
 			# Remove nested elements
 			flat[[x[1]]] <<- lapply(flat[[x[1]]], function(xx){ if(is.list(xx)) return(xx[[1]][1]) else return(xx) })
@@ -45,7 +53,7 @@ processXSD <- function(doc) {
 
 			# Prepare flat
 			flat[[x[1]]] <<- z
-			flatAttr[[x[1]]] <<- sapply(xml_find_all(doc, paste0("//xs:complexType[@name=\"", sName, "\"]//xs:attribute/@name")), function(xx) xml_text(xx))
+			flatAttr[[x[1]]] <<- sapply(xml_find_all(doc, paste0("//", defNS, "complexType[@name=\"", sName, "\"]//", defNS, "attribute/@name")), function(xx) xml_text(xx))
 
 			# Remove nested elements
 			flat[[x[1]]] <<- lapply(flat[[x[1]]], function(xx){ if(is.list(xx)) return(xx[[1]][1]) else return(xx) })
@@ -55,8 +63,24 @@ processXSD <- function(doc) {
 		}
 	}
 
+	# Get the default namespace
+	defNS <- names(xml_ns(doc))[[grep("XMLSchema", as.list(xml_ns(doc)))]]
 
-	rootInfo <- getNameType(xml_find_all(doc, "/xs:schema/xs:element")[[1]])
+	if(length(defNS) > 0)
+		defNS <- paste0(defNS[[1]], ":")
+	else
+		defNS <- ""
+
+	# See if we need to include more file(s) (include schemaLocation)
+	extraXSD <- xml_find_all(doc, paste0("//", defNS, "include"))
+	if(length(extraXSD) > 0) {
+		print("We have extra XSDs to be included!\n")
+		exFiles <- xml_attr(extraXSD, "schemaLocation")
+		exObj <- lapply(paste0(path, "/include/", exFiles), read_xml)
+		lapply(exObj, function(x) lapply(xml_children(x), function(y) xml_add_child(doc, y)))
+	}
+
+	rootInfo <- getNameType(xml_find_all(doc, paste0("/", defNS, "schema/", defNS, "element"))[[1]])
 
 	flat <- list()
 	flatAttr <- list()
@@ -164,7 +188,7 @@ processMetadata <- function(flat, flatAttr, rootInfo, xsdFile) {
 	return(xsdObject)
 }
 
-#' @importFrom xml2 xml_attrs read_xml xml_find_all xml_find_num xml_ns xml_text
+#' @importFrom xml2 xml_attrs read_xml xml_find_all xml_find_num xml_ns xml_text xml_add_child xml_attr xml_children
 #' @importFrom utils tail
 createXsdObject <- function(xsdFile) {
 
@@ -188,7 +212,7 @@ createXsdObject <- function(xsdFile) {
 	xsdObj <- read_xml(xsdFilePath)
 
 	# Get metadata based on XSD
-	metaData <- processXSD(xsdObj)
+	metaData <- processXSD(xsdObj, dirname(xsdFile))
 
 	# Process XML file
 	ret <- processMetadata(metaData$flat, metaData$flatAttr, metaData$rootInfo, xsdFile)

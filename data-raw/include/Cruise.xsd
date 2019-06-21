@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:include schemaLocation="Types.xsd"/>
+
+  <!--Cruise-->
+  <xsd:complexType name="Cruise">
+    <xsd:sequence>
+      <xsd:element name="Survey" type="surveys" />
+      <xsd:element name="Country" type="IDREFType" />
+      <xsd:element name="Platform" type="IDREFType" />
+      <xsd:element name="StartDate" type="ISO8601DateType" />
+      <xsd:element name="EndDate" type="ISO8601DateType" />
+      <xsd:element name="Organisation" type="IDREFType" minOccurs="0" nillable="true"/>
+      <xsd:element name="LocalID" type="string"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="surveys">
+    <xsd:sequence>
+      <xsd:element name="Code" type="IDREFType" minOccurs="1" maxOccurs="unbounded" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+
+  <xsd:complexType name="Survey">
+    <xsd:sequence>
+      <xsd:element name="Code" type="SurveyVocabulary" minOccurs="1" maxOccurs="unbounded" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="Country">
+    <xsd:sequence>
+      <xsd:element name="Code" type="CountryVocabulary" minOccurs="1" maxOccurs="unbounded" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="Platform">
+    <xsd:sequence>
+      <xsd:element name="Code" type="PlatformVocabulary" minOccurs="1" maxOccurs="unbounded" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="Organisation">
+    <xsd:sequence>
+      <xsd:element name="Code" type="OrganisationVocabulary" minOccurs="0" maxOccurs="unbounded" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+ 
+  <!--Cruise Vocabularies-->
+  <xsd:complexType name="SurveyVocabulary">
+    <xsd:simpleContent>
+      <xsd:extension base="string">
+        <xsd:attribute name="ID" type="xsd:ID" use="required"/>
+        <xsd:attribute name="CodeType" type="string" use="required"   fixed="https://acoustic.ices.dk/Services/Schema/XML/AC_Survey.xml"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="CountryVocabulary">
+    <xsd:simpleContent>
+      <xsd:extension base="string">
+        <xsd:attribute name="ID" type="xsd:ID" use="required"/>
+        <xsd:attribute name="CodeType" type="string" use="required" fixed="https://acoustic.ices.dk/Services/Schema/XML/ISO_3166.xml"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="OrganisationVocabulary">
+    <xsd:simpleContent>
+      <xsd:extension base="string">
+        <xsd:attribute name="ID" type="xsd:ID" use="required"/>
+        <xsd:attribute name="CodeType" type="string" use="required" fixed="https://acoustic.ices.dk/Services/Schema/XML/EDMO.xml"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="PlatformVocabulary">
+    <xsd:simpleContent>
+      <xsd:extension base="string">
+        <xsd:attribute name="ID" type="xsd:ID" use="required"/>
+        <xsd:attribute name="CodeType" type="string" use="required" fixed="https://acoustic.ices.dk/Services/Schema/XML/SHIPC.xml"/>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+</xsd:schema>
