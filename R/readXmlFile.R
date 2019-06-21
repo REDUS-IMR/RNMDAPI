@@ -99,7 +99,7 @@ readXmlFile <- function(xmlFilePath, stream = FALSE, useXsd = NULL) {
 	}
 
 	# Apply preprocess for ICES XSD
-	if(useXsd == "icesAcoustic") {
+	if(!is.null(useXsd) && useXsd == "icesAcoustic") {
 		xsdObjects$icesAcoustic.xsd <- icesAcousticPreprocess(xsdObjects$icesAcoustic.xsd)
 	}
 
