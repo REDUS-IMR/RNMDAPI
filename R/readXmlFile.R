@@ -27,6 +27,35 @@
 #' @export
 readXmlFile <- function(xmlFilePath, stream = FALSE, useXsd = NULL) {
 
+	# Ices Acoustic XSD needs several additional treatment
+	icesAcousticPreprocess <- function(xsdObject) {
+
+		AC <- xsdObject
+
+		# We only interested in these tables
+		allData <- c("Acoustic", "Instrument", "Calibration", "DataAcquisition", "DataProcessing", "Cruise", "Survey", "Log", "Sample", "Data")
+		newAC <- lapply(AC, function(x) x[allData])
+
+		# Set again the root
+		newAC$root <- "Acoustic"
+
+		# Re-build prefix data
+		newAC$prefixLens[allData] <- 0
+
+		allDatawithPrefix <- c("Instrument", "Calibration", "DataAcquisition", "DataProcessing", "Log", "Sample", "Data")
+
+		newAC$prefixLens[allDatawithPrefix] <- 1
+		newAC$prefixLens["Log"] <- 2
+		newAC$prefixLens["Sample"] <- 3
+		newAC$prefixLens["Data"] <- 4
+
+		newAC$tableHeaders$Log <- c("LocalID", newAC$tableHeaders$Log)
+		newAC$tableHeaders$Sample <- c("LocalID", "Distance", newAC$tableHeaders$Sample)
+		newAC$tableHeaders$Data <- c("LocalID", "Distance", "ChannelDepthUpper", newAC$tableHeaders$Data)
+
+		return(newAC)
+	}
+
 	# Process column names and types
 	applyNameType <- function(x, result, tableHeaders, tableTypes) {
 
@@ -67,6 +96,11 @@ readXmlFile <- function(xmlFilePath, stream = FALSE, useXsd = NULL) {
 	if(!file.exists(xmlFilePath)) {
 		print(paste("File", xmlFilePath, "does not exist."))
 		return(NULL)
+	}
+
+	# Apply preprocess for ICES XSD
+	if(useXsd == "icesAcoustic") {
+		xsdObjects$icesAcoustic.xsd <- icesAcousticPreprocess(xsdObjects$icesAcoustic.xsd)
 	}
 
 	# Invoke C++ xml reading
