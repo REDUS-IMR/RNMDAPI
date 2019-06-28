@@ -42,7 +42,7 @@ readXmlFile <- function(xmlFilePath, stream = FALSE, useXsd = NULL) {
 		# Re-build prefix data
 		newAC$prefixLens[allData] <- 0
 
-		allDatawithPrefix <- c("Instrument", "Calibration", "DataAcquisition", "DataProcessing", "Log", "Sample", "Data")
+		allDatawithPrefix <- c("Instrument", "Calibration", "DataAcquisition", "DataProcessing", "Cruise", "Survey", "Log", "Sample", "Data")
 
 		newAC$prefixLens[allDatawithPrefix] <- 1
 		newAC$prefixLens["Log"] <- 2
@@ -52,6 +52,9 @@ readXmlFile <- function(xmlFilePath, stream = FALSE, useXsd = NULL) {
 		newAC$tableHeaders$Log <- c("LocalID", newAC$tableHeaders$Log)
 		newAC$tableHeaders$Sample <- c("LocalID", "Distance", newAC$tableHeaders$Sample)
 		newAC$tableHeaders$Data <- c("LocalID", "Distance", "ChannelDepthUpper", newAC$tableHeaders$Data)
+
+		# Modify cruise structure to get LocalID as prefix
+		newAC$tableHeaders$Cruise <- c("LocalID", "Country", "Platform", "StartDate", "EndDate", "Organisation")
 
 		return(newAC)
 	}

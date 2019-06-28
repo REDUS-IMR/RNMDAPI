@@ -86,6 +86,10 @@ void processNode(pugi::xml_node& node, const std::vector<const char*>& parentPre
 		else
 			NodeKey.append(n.name());
 
+#ifdef DEBUG
+		std::cout << "Transform:" << n.name() << "<->" << NodeKey << std::endl;
+#endif
+
 		// Determine position
 		std::vector<std::string> NodeKeys = tableHeaders[root];
 		unsigned col = find(NodeKeys.begin(), NodeKeys.end(), NodeKey) - NodeKeys.begin();
@@ -114,8 +118,10 @@ void processNode(pugi::xml_node& node, const std::vector<const char*>& parentPre
 			if(prefixLens[root] > 0 && prefix[(prefixLens[root]-1)] == NULL) {
 #ifdef DEBUG
 				std::cout << "We have missing prefix!" << std::endl;
+				std::cout << "Peek: " << tempRes(levelCtrs[root], (prefixLens[root]-1)) << std::endl;
 #endif
-				prefix[(prefixLens[root]-1)] = tempRes(levelCtrs[root], (prefixLens[root]-1));
+				if(!Rcpp::CharacterVector::is_na(tempRes(levelCtrs[root], (prefixLens[root]-1))))
+					prefix[(prefixLens[root]-1)] = tempRes(levelCtrs[root], (prefixLens[root]-1));
 			}
 
 			processNode(n, prefix, tableHeaders, prefixLens, levelCtrs, ret);
