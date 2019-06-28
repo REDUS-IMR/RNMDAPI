@@ -160,7 +160,6 @@ static void sDataHandler(const XML_Char *data, size_t len, void *userData)
 			std::map<std::string, std::vector<std::string> >* tableHeaders = pD->getTableHeaders();
 			const char* parent = pD->getParentName();
 			const char* column = pD->getColumn();
-
 #ifdef DEBUG
 			Rcpp::Rcout << parent << "-> ";
 			Rcpp::Rcout << column << ": " ;
@@ -180,15 +179,16 @@ static void sDataHandler(const XML_Char *data, size_t len, void *userData)
 			unsigned col = find(NodeKeys.begin(), NodeKeys.end(), NodeKey) - NodeKeys.begin();
 
 			if( col >= NodeKeys.size() ) {
-				Rcpp::Rcout << parent << "-> " << column << ": " << strdata << std::endl;
-				Rcpp::stop("Found a value of an undefined element! Stopping process...");
+				return;
+				//Rcpp::Rcout << parent << "-> " << column << ": " << strdata << std::endl;
+				//Rcpp::stop("Found a value of an undefined element! Stopping process...");
 			}
 
 #ifdef DEBUG
 			Rcpp::Rcout << "( " << col << " )" << std::endl;
 			for (std::vector<std::string>::iterator it = contentPtr->begin() ; it != contentPtr->end(); ++it)
 				Rcpp::Rcout << *it << " ";
-			Rcpp::Rcout << '\n';
+			Rcpp::Rcout << "END sDATA\n";
 #endif
 			// Put the value inside content
 			(*contentPtr)[col] = strdata;
@@ -211,22 +211,49 @@ static void sElemHandler(XML::Element &elem, void *userData)
 	// Get root
 	const char* root = elem.GetName();
 
+	// Get parent
+	const char* parent = pD->getParentName();
+
+#ifdef DEBUG
+	Rcpp::Rcout << "START sELEMENT: " << root << "\n";
+#endif
+
 	// Check if we are almost near the value
 	std::string rK(root);
 	unsigned check = find(tableNames->begin(), tableNames->end(), rK) - tableNames->begin();
+
+	bool proceed = false;
+
+	// Double check parent to ensure
+	if( check < tableNames->size() ) {
+#ifdef DEBUG
+		Rcpp::Rcout << "Double checking: " << root << " <- " << parent << "\n";
+#endif
+		std::string rP(parent);
+		std::vector<std::string> parentStruct = (*tableHeaders)[rP];
+		unsigned dblCheck = find(parentStruct.begin(), parentStruct.end(), rK) - parentStruct.begin();
+		if (dblCheck < parentStruct.size()) {
+#ifdef DEBUG
+			Rcpp::Rcout << "Found? " << dblCheck << "\n";
+#endif
+			proceed = false;
+		} else {
+			proceed = true;
+		}
+	}
 
 	// Prepare prefix
 	std::vector<std::string> prefix;
 	std::vector<std::string>* prefixPtr;
 
-	// Prepare parent
-	const char* parent;
-
 	// Prepare content pointer
 	std::vector<std::string>* contentPtr;
 
-	if( check < tableNames->size() ) {
+	if( proceed ) {
 
+#ifdef DEBUG
+		Rcpp::Rcout << "Found table: " << root << "\n";
+#endif
 		parent = root;
 
 		// Getting result placeholder
@@ -242,10 +269,25 @@ static void sElemHandler(XML::Element &elem, void *userData)
 		int prefixSize = (*prefixLens)[(char*) root];
 		prefix.resize(prefixSize);
 
+		unsigned long parentPrefixSize = parentPrefix->size();
+		if(parentPrefixSize > 0 && (*parentPrefix)[(parentPrefixSize - 1)].empty()) {
+#ifdef DEBUG
+			std::cout << "We have missing prefix!" << std::endl;
+#endif
+			std::vector<std::string>* parentContent = pD->getContent();
+			(*parentPrefix)[(parentPrefixSize - 1)] = (*parentContent)[(parentPrefixSize - 1)];
+		}
+
 		// Apply parent attributes to row and to children prefix
-		for(unsigned long i = 0; i < parentPrefix->size(); i++) {
+		for(unsigned long i = 0; i < parentPrefixSize; i++) {
 			(*content)[i] = prefix[i] = (*parentPrefix)[i];
 		}
+
+
+
+#ifdef DEBUG
+		Rcpp::Rcout << "Start attributes for: " << root << "\n";
+#endif
 
 		// begin new element (and write attributes)
 		if (elem.NumAttributes() > 0)
@@ -262,6 +304,9 @@ static void sElemHandler(XML::Element &elem, void *userData)
 			}
 		}
 
+#ifdef DEBUG
+		Rcpp::Rcout << "Finish attributes for: " << root << "\n";
+#endif
 
 		// Push back the result
 		tempRes->push_back(content);
@@ -273,12 +318,46 @@ static void sElemHandler(XML::Element &elem, void *userData)
 			Rcpp::Rcout << *it << " ";
 		Rcpp::Rcout << '\n';
 #endif
-
 	} else {
-		parent = pD->getParentName();
+
 		prefixPtr = parentPrefix;
 		contentPtr = pD->getContent();
+
+		// Accomodate IDREF in the ICES XMLs
+		if (elem.NumAttributes() > 0) {
+			XML::Attribute a = elem.GetAttrList();
+			std::string NodeKey(a.GetName());
+
+#ifdef DEBUG
+			Rcpp::Rcout << "Attr name in " << root << " " << NodeKey << "\n";
+#endif
+
+
+			if(NodeKey.compare("IDREF") == 0) {
+#ifdef DEBUG
+				Rcpp::Rcout << "Found IDREF" << "\n";
+#endif
+				// Getting header keys
+				std::string rP(parent);
+				std::vector<std::string> NodeKeys = (*tableHeaders)[rP];
+				unsigned col = find(NodeKeys.begin(), NodeKeys.end(), root) - NodeKeys.begin();
+				if( col < NodeKeys.size() ) {
+					(*contentPtr)[col] = a.GetValue();
+				}
+			}
+		}
 	}
+/*
+	// Check for missing prefix before going to children structure
+	int prefixSize = (*prefixLens)[(char*) root];
+	if(prefixSize > 0 && prefix[(prefixSize - 1)].empty()) {
+#ifdef DEBUG
+		std::cout << "We have missing prefix!" << std::endl;
+#endif
+		prefix[(prefixSize-1)] = "BLA";//(*contentPtr)[(prefixSize-1)];
+	}
+
+*/
 
 	passingData *newPD = new passingData(tableHeaders, prefixLens, ret, tableNames, parent, prefixPtr, root, contentPtr);
 
@@ -294,7 +373,7 @@ static void sElemHandler(XML::Element &elem, void *userData)
 #ifdef DEBUG
 	for (std::vector<std::string>::iterator it = contentPtr->begin() ; it != contentPtr->end(); ++it)
 		Rcpp::Rcout << *it << " ";
-	Rcpp::Rcout << '\n';
+	Rcpp::Rcout << "END sELEMENT\n";
 #endif
 	delete newPD;
 }
@@ -309,6 +388,10 @@ static void rootHandler(XML::Element &elem, void *userData)
 	const char* root = elem.GetName();
 	char* xmlns = NULL;
 	char* ns = NULL;
+
+#ifdef DEBUG
+	Rcpp::Rcout << "Start root handler" << std::endl;
+#endif
 
 	// Getting the namespace
 	if (elem.NumAttributes() > 0)
