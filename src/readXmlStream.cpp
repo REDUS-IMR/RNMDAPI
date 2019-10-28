@@ -430,7 +430,7 @@ static void rootHandler(XML::Element &elem, void *userData)
 
 	Rcpp::Rcout << "Root: " << root << "\n";
 	Rcpp::Rcout << "XML namespace: " << xmlns << "\n";
-	if(ns != NULL && strlen(ns) > 0) {
+	if(ns != NULL && strlen(ns) > 0 && strcmp(ns, "xsd") !=0 && strcmp(ns, "xsi") !=0) {
 		Rcpp::Rcout << "XML namespace prefix: " << ns << "\n";
 		Rcpp::stop("Unfortunately, namespace support is still broken!!!\n");
 	} else {

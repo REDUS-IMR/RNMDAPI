@@ -187,7 +187,7 @@ Rcpp::List readXmlCpp(Rcpp::CharacterVector inputFile, Rcpp::List xsdObjects, Rc
 
 	Rcpp::Rcout << "Root: " <<  doc.first_child().name() << "\n";
 	Rcpp::Rcout << "XML namespace: " << xmlns << "\n";
-	if(ns != NULL && strlen(ns) > 0) {
+	if(ns != NULL && strlen(ns) > 0 && strcmp(ns, "xsd") !=0 && strcmp(ns, "xsi") !=0) {
 		Rcpp::Rcout << "XML namespace prefix: " << ns << "\n";
 		Rcpp::stop("Unfortunately, namespace support is still broken!!!\n");
 	} else {
