@@ -22,5 +22,5 @@ readLssFile <- function(file, encoding="latin1", guessMax = 100000){
   loc$decimal_mark <- ","
   loc$encoding <- encoding
   db <- readr::read_delim(file, delim="|", col_names=T, trim_ws=TRUE, na=c("", "na", "NA"), locale=loc, guess_max = guessMax)
-  return(db)
+  return(data.table::as.data.table(db))
 }
