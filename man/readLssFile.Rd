@@ -7,7 +7,7 @@
 readLssFile(file, encoding = "latin1", guessMax = 1e+05)
 }
 \arguments{
-\item{file}{file with LSS landings}
+\item{file}{path to file with LSS landings}
 
 \item{encoding}{encoding for 'file'}
 
