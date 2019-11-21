@@ -57,3 +57,23 @@
 #' @name StoxLandingData
 #'
 NULL
+
+#' Extracts relevant columns for StoxLandingData and aggregates
+#' NA is treated as a category.
+#' @noRd
+extractAggregateLandings <- function(nmdLandings){
+  flatLandings <- merge(nmdLandings$Seddellinje, nmdLandings$Fangstdata)
+  flatLandings <- merge(flatLandings, nmdLandings$Art)
+  flatLandings <- merge(flatLandings, nmdLandings$Produkt)
+  flatLandings <- merge(flatLandings, nmdLandings$Mottaker)
+  flatLandings <- merge(flatLandings, nmdLandings$LandingOgProduksjonType)
+  
+  flatLandings <- flatLandings[,c("ArtFAO_kode", "Art_kode", "Art_bokm\u00E5l", "Rundvekt", "Fangst\u00E5r", "SisteFangstdato", "Redskap_kode", "Hovedomr\u00E5de_kode", "Omr\u00E5ddegruppering_bokm\u00E5dl", "KystHav_kode", "NordS\u00F8rFor62GraderNord", "St\u00F8rsteLengde", "Fart\u00F8ynasjonalitet_kode", "Mottaksstasjon", "Landingsnasjon_kode", "HovedgruppeAnvendelse_kode")]
+  
+  #aggregate, treat NA in aggregation columns as values.
+  
+  # rename headers
+  # merge in descriptive fields
+  
+  # return as data.table
+}
