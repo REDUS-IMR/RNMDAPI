@@ -16,3 +16,5 @@ example <- system.file("testresources","landing.xml", package="RstoxData")
 streamParse <- readXmlFile(example, stream = T)
 expect_true(all(c("Art", "Dellanding", "Fangstdata", "Landingsdata", "Seddellinje") %in% names(streamParse)))
 expect_false(any(is.na(streamParse$Produkt$Rundvekt)))
+expect_false(all(is.na(streamParse$Produkt$Registreringsmerke_seddel)))
+
