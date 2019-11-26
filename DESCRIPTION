@@ -8,11 +8,11 @@ Maintainer: Ibrahim Umar <ibrahim.umar@hi.no>
 Description: Tools to fetch and manipulate various data formats 
         for fisheries (mainly geared towards biotic and acoustic data).
 License: LGPL-3 + file LICENSE
-Imports: Rcpp (>= 1.0.0), xml2, data.table, readr
+Imports: Rcpp (>= 1.0.0), xml2, data.table, readr, stats
 Depends: R (>= 2.10)
 LinkingTo: Rcpp
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 6.1.1
+RoxygenNote: 7.0.1
 Suggests: 
     testthat

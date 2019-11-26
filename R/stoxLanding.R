@@ -26,7 +26,7 @@
 #'  
 #'  DEVELOPMENT NOTE:
 #'  Will add, pending fix in XML parser:
-#'  \description{
+#'  \describe{
 #'   \item{countryVessel}{Country of the vessel that caugth the catch}
 #'   \item{landingSite}{Code identifying landing site (buyer of catch)}
 #'   \item{usage}{Market usage of catch.}
@@ -133,7 +133,7 @@ extractAggregateLandings <- function(nmdLandings){
   }
   names(aggList) <- aggColumns
   
-  aggLandings <- aggregate(list(Rundvekt=flatLandings$Rundvekt), by=aggList, FUN=function(x){sum(x, na.rm=T)})
+  aggLandings <- stats::aggregate(list(Rundvekt=flatLandings$Rundvekt), by=aggList, FUN=function(x){sum(x, na.rm=T)})
   aggLandings <- aggLandings[,c(aggColumns, "Rundvekt")]
   
   
