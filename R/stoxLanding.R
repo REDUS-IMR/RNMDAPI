@@ -5,27 +5,27 @@
 #'
 #' @section Column definitions:
 #'  \describe{
-#'   \item{speciesFAOCommercial}{FAO code for species (ASFIS)}
-#'   \item{speciesCategoryCommercial}{code for species category (several codes may code the same species or stock, and some species may be recorded only at higher taxonomic classifications)}
-#'   \item{commonNameCommercial}{common name used for species category in trade documents}
-#'   \item{weight}{Weight of round catch in kg. Round weight may be estimated from post-processing weights.}
-#'   \item{year}{Year of catch}
-#'   \item{catchDate}{Date of catch (last catch on trip) in UTC}
-#'   \item{gear}{Code for gear used for catch (dominant gear for trip)}
-#'   \item{gearDescription}{Descriptive text for column 'gear'}
-#'   \item{area}{Area code for the position of catch (dominant area for trip)}
-#'   \item{location}{Location code (subdivision of 'Area') for the position of catch (dominant area for trip)}
-#'   \item{icesAreaGroup}{Area code for the position of catch (dominant area for trip), based on different levels of the ICES spatial coding system}
-#'   \item{coastal}{code indidcating whether catch was taken within coastal delimitation line (dominant side for trip)}
-#'   \item{coastalDescription}{Descriptive text for column 'coastal'}
-#'   \item{n62Code}{Code indidcating whether catch was taken north or south of 62 deg. Lat. (dominant side for trip)}
-#'   \item{n62Description}{Descriptive text indidcating whether catch was taken north or south of 62 deg. Lat. (dominant side for trip)}
-#'   \item{vesselLength}{Maximal length of vessel in meters}
+#'   \item{speciesFAOCommercial}{character() FAO code for species (ASFIS)}
+#'   \item{speciesCategoryCommercial}{character() code for species category (several codes may code the same species or stock, and some species may be recorded only at higher taxonomic classifications)}
+#'   \item{commonNameCommercial}{character() common name used for species category in trade documents}
+#'   \item{year}{integer() Year of catch}
+#'   \item{catchDate}{POSIXct() Date of catch (last catch on trip) in UTC}
+#'   \item{gear}{character() Code for gear used for catch (dominant gear for trip)}
+#'   \item{gearDescription}{character() Descriptive text for column 'gear'}
+#'   \item{area}{character() Area code for the position of catch (dominant area for trip)}
+#'   \item{location}{character() Location code (subdivision of 'Area') for the position of catch (dominant area for trip)}
+#'   \item{icesAreaGroup}{character() Area code for the position of catch (dominant area for trip), based on different levels of the ICES spatial coding system}
+#'   \item{coastal}{character() code indidcating whether catch was taken within coastal delimitation line (dominant side for trip)}
+#'   \item{coastalDescription}{character() Descriptive text for column 'coastal'}
+#'   \item{n62Code}{character() Code indidcating whether catch was taken north or south of 62 deg. Lat. (dominant side for trip)}
+#'   \item{n62Description}{character() Descriptive text indidcating whether catch was taken north or south of 62 deg. Lat. (dominant side for trip)}
+#'   \item{vesselLength}{numeric() Maximal length of vessel in meters}
 #'   \item{countryVessel}{Country of the vessel that caugth the catch}
 #'   \item{landingSite}{Code identifying landing site (buyer of catch)}
-#'   \item{countryLanding}{Country where catch was landed}
+#'   \item{countryLanding}{character() Country where catch was landed}
 #'   \item{usage}{Market usage of catch.}
 #'   \item{usageDescription}{Descriptive text for column 'usage'}
+#'   \item{weight}{nuermic() Weight of round catch in kg. Round weight may be estimated from post-processing weights.}
 #'  }
 #'  
 #' @section Correspondance to other formats:
@@ -36,7 +36,6 @@
 #'   \item{speciesFAOCommercial}{ArtFAO_kode}
 #'   \item{speciesCategoryCommercial}{Art_kode}
 #'   \item{commonNameCommercial}{Art_bokmål}
-#'   \item{weight}{Rundvekt}
 #'   \item{year}{Fangstår}
 #'   \item{catchDate}{SisteFangstdato}
 #'   \item{gear}{Redskap_kode}
@@ -54,6 +53,7 @@
 #'   \item{countryLanding}{Landingsnasjon_kode}
 #'   \item{usage}{HovedgruppeAnvendelse_kode}
 #'   \item{usageDescription}{HovedgruppeAnvendelse_bokmål}
+#'   \item{weight}{Rundvekt}
 #'  }
 #'
 #' @name StoxLandingData
@@ -101,6 +101,9 @@ extractAggregateLandings <- function(nmdLandings){
   flatLandings <- merge(flatLandings, nmdLandings$Mottaker)
   #flatLandings <- merge(flatLandings, nmdLandings$LandingOgProduksjonType)
   
+  #
+  # Note: if non-character columns are added to aggColumns. Handle accoridngly in NA-aggregation below
+  #
   aggColumns <- c("ArtFAO_kode", 
                   "Art_kode", 
                   "Art_bokm\u00E5l", 
@@ -108,6 +111,7 @@ extractAggregateLandings <- function(nmdLandings){
                   "SisteFangstdato", 
                   "Redskap_kode", 
                   "Hovedomr\u00E5de_kode", 
+                  "Lokasjon_kode",
                   "Omr\u00E5degruppering_bokm\u00E5l", 
                   "KystHav_kode", 
                   "NordS\u00F8rFor62GraderNord", 
@@ -140,6 +144,7 @@ extractAggregateLandings <- function(nmdLandings){
                            "catchDate",
                            "gear",
                            "area",
+                           "location",
                            "icesAreaGroup",
                            "coastal",
                            "n62Code",
@@ -158,10 +163,16 @@ extractAggregateLandings <- function(nmdLandings){
   n62 <- loadResource("n62")[,c("n62Code", "n62Description")]
   aggLandings <- merge(aggLandings, n62, all.x=T, by="n62Code")
   
+  # format conversions
   cd <- as.POSIXct(aggLandings$catchDate, format="%d.%m.%Y")
   attributes(cd)$tzone <- "UTC"
   aggLandings$catchDate <- as.POSIXct(substr(as.character(cd),1,10), format="%Y-%m-%d", tzone="UTC")
   
+  aggLandings$vesselLength[aggLandings$vesselLength == "<NA>"] <- NA
+  aggLandings$vesselLength <- as.numeric(aggLandings$vesselLength)
+  
+  aggLandings$year[aggLandings$year == "<NA>"] <- NA
+  aggLandings$year <- as.integer(aggLandings$year)
   
   returnOrder <- c("speciesFAOCommercial",
                    "speciesCategoryCommercial",
@@ -171,6 +182,7 @@ extractAggregateLandings <- function(nmdLandings){
                    "gear",
                    "gearDescription",
                    "area",
+                   "location",
                    "icesAreaGroup",
                    "coastal",
                    "coastalDescription",
