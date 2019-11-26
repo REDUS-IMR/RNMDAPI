@@ -33,6 +33,7 @@ expected_colums <- c("speciesFAOCommercial",
                      "n62Description",
                      "vesselLength",
                      "landingSite",
+                     "countryLanding",
                      "weight"
                      )
 expect_equivalent(expected_colums, names(flatSL))

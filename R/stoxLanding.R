@@ -20,12 +20,17 @@
 #'   \item{n62Code}{character() Code indidcating whether catch was taken north or south of 62 deg. Lat. (dominant side for trip)}
 #'   \item{n62Description}{character() Descriptive text indidcating whether catch was taken north or south of 62 deg. Lat. (dominant side for trip)}
 #'   \item{vesselLength}{numeric() Maximal length of vessel in meters}
+#'   \item{countryLanding}{character() Country where catch was landed}
+#'   \item{weight}{nuermic() Weight of round catch in kg. Round weight may be estimated from post-processing weights.}
+#'  }
+#'  
+#'  DEVELOPMENT NOTE:
+#'  Will add, pending fix in XML parser:
+#'  \description{
 #'   \item{countryVessel}{Country of the vessel that caugth the catch}
 #'   \item{landingSite}{Code identifying landing site (buyer of catch)}
-#'   \item{countryLanding}{character() Country where catch was landed}
 #'   \item{usage}{Market usage of catch.}
 #'   \item{usageDescription}{Descriptive text for column 'usage'}
-#'   \item{weight}{nuermic() Weight of round catch in kg. Round weight may be estimated from post-processing weights.}
 #'  }
 #'  
 #' @section Correspondance to other formats:
@@ -116,7 +121,8 @@ extractAggregateLandings <- function(nmdLandings){
                   "KystHav_kode", 
                   "NordS\u00F8rFor62GraderNord", 
                   "St\u00F8rsteLengde", 
-                  "Mottaksstasjon")
+                  "Mottaksstasjon",
+                  "Mottakernasjonalitet_kode")
   
   flatLandings <- flatLandings[,c(aggColumns, "Rundvekt"), with=F]
 
@@ -150,6 +156,7 @@ extractAggregateLandings <- function(nmdLandings){
                            "n62Code",
                            "vesselLength",
                            "landingSite",
+                           "countryLanding",
                            "weight"
                            )
   
@@ -190,6 +197,7 @@ extractAggregateLandings <- function(nmdLandings){
                    "n62Description",
                    "vesselLength",
                    "landingSite",
+                   "countryLanding",
                    "weight")
   
   return(data.table::as.data.table(aggLandings[,returnOrder]))
