@@ -35,3 +35,11 @@ expected_colums <- c("speciesFAOCommercial",
                      "weight"
                      )
 expect_equivalent(expected_colums, names(flatSL))
+
+context("test-stoxLanding missing values in aggColumns")
+weightPre <- sum(flatSL$weight)
+landingXML$Mottaker$Mottaksstasjon[2] <- NA
+flatSL <- extractAggregateLandings(landingXML)
+expect_equal(sum(is.na(flatSL$landingSite)), 1)
+weightPost <- sum(flatSL$weight)
+expect_equal(weightPre, weightPost)

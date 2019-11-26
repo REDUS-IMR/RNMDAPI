@@ -118,6 +118,7 @@ extractAggregateLandings <- function(nmdLandings){
 
   aggList <- list()
   for (aggC in aggColumns){
+    flatLandings[[aggC]][is.na(flatLandings[[aggC]])] <- "<NA>" #set NAs to text-string for aggregation
     aggList[[aggC]] <- flatLandings[[aggC]]
   }
   names(aggList) <- aggColumns
@@ -125,7 +126,11 @@ extractAggregateLandings <- function(nmdLandings){
   aggLandings <- aggregate(list(Rundvekt=flatLandings$Rundvekt), by=aggList, FUN=function(x){sum(x, na.rm=T)})
   aggLandings <- aggLandings[,c(aggColumns, "Rundvekt")]
   
-  #aggregate, treat NA in aggregation columns as values.
+  
+  #reset NAs
+  for (aggC in aggColumns){
+    aggLandings[[aggC]][aggLandings[[aggC]] == "<NA>"] <- NA
+  }
   
   # rename headers
   names(aggLandings) <- c("speciesFAOCommercial",
@@ -142,6 +147,7 @@ extractAggregateLandings <- function(nmdLandings){
                            "landingSite",
                            "weight"
                            )
+  
   
   gear <- loadResource("gear")[,c("gear", "gearDescription")]
   aggLandings <- merge(aggLandings, gear, all.x=T, by="gear")
