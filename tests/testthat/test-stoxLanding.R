@@ -1,19 +1,37 @@
 context("test-stoxLanding test resource file gear")
-loc <- readr::locale()
-loc$encoding <- "latin1"
-gear <- readr::read_delim(system.file("extdata","codeDescriptions", "gear.csv", package="RstoxData"), delim = "\t", locale = loc)
+gear <- loadResource("gear")
 expect_false(any(is.na(gear$gearDescription)))
 
 context("test-stoxLanding test resource file coastal")
-coastal <- readr::read_delim(system.file("extdata","codeDescriptions", "coastal.csv", package="RstoxData"), delim = "\t", locale = loc)
+coastal <- loadResource("coastal")
 expect_false(any(is.na(coastal$coastalDescription)))
 
 context("test-stoxLanding test resource file n62")
-n62 <- readr::read_delim(system.file("extdata","codeDescriptions", "n62.csv", package="RstoxData"), delim = "\t", locale = loc)
-expect_false(any(is.na(n62$n62English)))
+n62 <- loadResource("n62")
+expect_false(any(is.na(n62$n62Description)))
 
-context("test-stoxLanding test resource file n62")
-usage <- readr::read_delim(system.file("extdata","codeDescriptions", "usage.csv", package="RstoxData"), delim = "\t", locale = loc)
+context("test-stoxLanding test resource file nusage")
+usage <- loadResource("usage")
 expect_false(any(is.na(usage$usageDescription)))
 
-#context("test-stoxLanding")
+context("test-stoxLanding")
+landingXML <- readXmlFile(system.file("testresources", "landing.xml", package="RstoxData"), stream = T)
+flatSL <- extractAggregateLandings(landingXML)
+expected_colums <- c("speciesFAOCommercial",
+                     "speciesCategoryCommercial",
+                     "commonNameCommercial",
+                     "year",
+                     "catchDate",
+                     "gear",
+                     "gearDescription",
+                     "area",
+                     "icesAreaGroup",
+                     "coastal",
+                     "coastalDescription",
+                     "n62Code",
+                     "n62Description",
+                     "vesselLength",
+                     "landingSite",
+                     "weight"
+                     )
+expect_equivalent(expected_colums, names(flatSL))
